@@ -1,3 +1,5 @@
+High level design (HLD)
+---
 ```mermaid
 graph TD
     A[Client Browser] -->|HTTP Requests| B[React Frontend]
