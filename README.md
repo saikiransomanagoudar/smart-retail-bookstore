@@ -1,4 +1,4 @@
-```
+```mermaid
 graph TD
     A[Client Browser] -->|HTTP Requests| B[React Frontend]
     B <-->|API Calls| C[Flask Backend]
