@@ -27,7 +27,7 @@ def item_based_recommendations():
     num_recommendations = request.args.get('num_recommendations', default=10, type=int)
     recommendations = get_item_based_recommendations(user_id, num_recommendations)
     return jsonify({"item-based-recommendations": recommendations})
-
+  
 @recommendations_bp.route('/content-based', methods=['GET'])
 def content_based_recommendations():
     try:
@@ -49,4 +49,3 @@ def content_based_recommendations():
     except Exception as e:
         print(f"Error in content-based recommendations: {str(e)}")
         return jsonify({"error": "An error occurred while processing your request"}), 500
-
