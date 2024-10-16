@@ -8,3 +8,5 @@ psycopg2-binary
 langchain
 openai
 httpx
+gql
+langchain-openai
