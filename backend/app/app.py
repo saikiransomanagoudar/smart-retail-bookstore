@@ -1,11 +1,12 @@
 from fastapi import FastAPI
-from backend.app.api import recommendations, users
+from backend.app.api import recommendations, chatbot
+from backend.app.api.recommendations import router
 from backend.app.core.config import settings
 
 app = FastAPI(title=settings.PROJECT_NAME, version=settings.PROJECT_VERSION)
 
-# app.include_router(recommendations.router, prefix="/api/recommendations", tags=["recommendations"])
-# app.include_router(users.router, prefix="/api/users", tags=["users"])
+app.include_router(router, prefix="/api/recommendations", tags=["recommendations"])
+app.include_router(chatbot.router, prefix="/api/chatbot", tags=["chatbot"])
 
 @app.get("/")
 async def root():
