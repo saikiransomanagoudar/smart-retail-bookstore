@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import List, Optional
 from backend.app.database.database import get_db
-from backend.app.services.recommendation_service import get_recommendations, get_trending_books
+from backend.app.services.recommendation_service import get_recommendations, get_trending_book
 
 router = APIRouter()
 
@@ -44,6 +44,6 @@ async def save_preferences(preferences: UserPreferencesInput, user_id: str, db: 
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/trending-books", response_model=List[BookRecommendation])
-async def get_trending_books():
-    trending_books = await get_trending_books()
+async def get_trending_book():
+    trending_books = await get_trending_book()
     return trending_books
