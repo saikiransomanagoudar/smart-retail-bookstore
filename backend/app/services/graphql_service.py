@@ -52,6 +52,32 @@ class GraphQLService:
         result = await self.execute_query(query, variables)
         return result.get("books", [])
 
+    async def get_book_details_by_titles(self, titles: List[str]) -> List[Dict]:
+        query = """
+        query MyQuery($titles: [String!]!) {
+            books(where: {
+                title: {_in: $titles},
+                release_year: {_is_null: false}, 
+                dto_combined: {_is_null: false}
+            }, distinct_on: title) {
+                id
+                title
+                release_year
+                release_date
+                images(limit: 1, where: {url: {_is_null: false}}) {
+                    url
+                }
+                rating
+                pages
+                dto
+                dto_combined(path: "genres")
+            }
+        }
+        """
+        variables = {"titles": titles}
+        result = await self.execute_query(query, variables)
+        return result.get("books", [])
+
     async def get_book_details_by_title_chatbot(self, title: str) -> List[Dict]:
         query = """
         query MyQuery($title: String!) {
@@ -75,6 +101,5 @@ class GraphQLService:
         variables = {"title": title}
         result = await self.execute_query(query, variables)
         return result.get("books", [])
-
 
 graphql_service = GraphQLService(settings.HARDCOVER_API_TOKEN)
