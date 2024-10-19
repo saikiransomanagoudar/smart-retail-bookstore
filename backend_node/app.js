@@ -7,7 +7,9 @@ const Books = require("./routes/book");
 const Favourite = require("./routes/favourite");
 const Cart = require("./routes/cart");
 const Order = require("./routes/order");
+const cors = require("cors");
 
+app.use(cors());
 app.use(express.json());
 app.use("/api/v1", User);
 app.use("/api/v1", Books);
