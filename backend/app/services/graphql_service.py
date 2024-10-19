@@ -32,14 +32,14 @@ class GraphQLService:
 
     async def get_book_details_by_ids(self, book_ids: List[int]) -> List[Dict]:
         query = """
-        query MyQuery($titles: [String!]!) {
-            books(where: { title: { _in: $titles } }, distinct_on: title) {
+        query MyQuery($ids: [Int!]!) {
+            books(where: {id: {_in: $ids}}, distinct_on: title) {
                 id
                 title
                 release_year
                 release_date
-                images(limit: 1) {
-                    url
+                images(limit: 1, where: {url: {_is_null: false}}) {
+                  url
                 }
                 rating
                 pages
