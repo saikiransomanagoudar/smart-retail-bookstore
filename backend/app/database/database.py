@@ -13,3 +13,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
+def create_tables():
+    from backend.app.models.user import UserPreferences
+    Base.metadata.create_all(bind=engine)
