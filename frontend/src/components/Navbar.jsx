@@ -1,9 +1,20 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
+import { authActions } from "../store/auth"; // Assuming this is the correct path to your auth slice
+
 const Navbar = () => {
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
   const role = useSelector((state) => state.auth.role);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const handleLogout = () => {
+    dispatch(authActions.logout());
+    localStorage.removeItem("token"); // Remove token or any other session data if stored
+    localStorage.removeItem("id"); // Remove id or any other session data if stored
+    navigate("/login");
+  };
   var links = [
     {
       title: "Home",
@@ -79,30 +90,20 @@ const Navbar = () => {
           <div className='5/6 hidden lg:block'>
             <div className='flex items-center'>
               {links.map((items, i) => (
-                <>
-                  {items.title === "Profile" ||
-                  items.title === "Admin Profile" ? (
-                    <div
-                      className=' rounded  hover:cursor-pointer border border-blue-500 px-3 py-1 mx-3 hover:bg-white hover:text-zinc-900 transition-all duration-300'
-                      key={i}
-                    >
-                      <Link to={`${items.link}`} className='text-normal'>
-                        {items.title}
-                      </Link>
-                    </div>
-                  ) : (
-                    <div
-                      className='mx-3 hover:text-blue-300  rounded transition-all duration-300 hover:cursor-pointer'
-                      key={i}
-                    >
-                      <Link to={`${items.link}`} className='text-normal'>
-                        {items.title}{" "}
-                      </Link>
-                    </div>
-                  )}
-                </>
+                <div
+                  className={`${
+                    items.title === "Profile" || items.title === "Admin Profile"
+                      ? "rounded  hover:cursor-pointer border border-blue-500 px-3 py-1 mx-3 hover:bg-white hover:text-zinc-900 transition-all duration-300"
+                      : "mx-3 hover:text-blue-300  rounded transition-all duration-300 hover:cursor-pointer"
+                  }`}
+                  key={i}
+                >
+                  <Link to={items.link} className='text-normal'>
+                    {items.title}
+                  </Link>
+                </div>
               ))}
-              {isLoggedIn === false && (
+              {isLoggedIn === false ? (
                 <>
                   <Link
                     to='/login'
@@ -117,6 +118,13 @@ const Navbar = () => {
                     SignUp
                   </Link>
                 </>
+              ) : (
+                <button
+                  onClick={handleLogout}
+                  className='rounded border border-red-500 px-3 py-1 mx-3 hover:bg-white hover:text-red-500 transition-all duration-300'
+                >
+                  Logout
+                </button>
               )}
             </div>
           </div>

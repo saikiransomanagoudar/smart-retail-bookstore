@@ -6,6 +6,8 @@ const Book = require("../models/book");
 router.put("/add-to-cart", authenticateToken, async (req, res) => {
   try {
     const { bookid, id } = req.headers;
+    // console.log("const { bookid, id } = req.headers;", req.headers);
+
     const userData = await User.findById(id);
     const isBookinCart = userData.cart.includes(bookid);
 
@@ -24,7 +26,7 @@ router.put("/add-to-cart", authenticateToken, async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ message: "An error occurred" });
+    return res.status(500).json({ message: error });
   }
 });
 
