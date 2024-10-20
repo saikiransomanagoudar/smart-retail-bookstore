@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import Hero from "../components/Home/Hero";
 import RecentlyAdded from "../components/Home/RecentlyAdded";
-
+import RecommendedBooks from "../components/Home/RecommendedBooks";
 const Home = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -10,6 +10,7 @@ const Home = () => {
   return (
     <>
       <Hero />
+      <RecommendedBooks />
       <RecentlyAdded />
     </>
   );
