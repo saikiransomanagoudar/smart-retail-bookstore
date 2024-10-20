@@ -23,8 +23,7 @@ const user = new mongoose.Schema(
     },
     avatar: {
       type: String,
-      default:
-        "https://www.flaticon.com/free-icon/user_3177440?term=avatar&page=1&position=5&origin=search&related_id=3177440",
+      default: "https://cdn-icons-png.flaticon.com/128/3177/3177440.png",
     },
     role: {
       type: String,
