@@ -11,6 +11,7 @@ import Profile from "./pages/Profile";
 import Favourite from "./pages/Favourite";
 import OrderHistory from "./pages/OrderHistory";
 import Settings from "./pages/Settings";
+import RecommendedBooks from "./pages/RecommendedBooks";
 import AllOrders from "./components/AdminPages/AllOrders";
 import AddBook from "./components/AdminPages/AddBook";
 import UpdateBooks from "./components/AdminPages/UpdateBooks";
@@ -27,6 +28,7 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/all-books" element={<AllBooks />} />
+        <Route path='/recommended-books' element={<RecommendedBooks />} />{" "}
         <Route path="/view-book-details/:id" element={<ViewBookDetails />} />
         <Route path="/login" element={!isSignedIn ? <Login /> : <Navigate to="/" />} />
         <Route path="/signup" element={!isSignedIn ? <Signup /> : <Navigate to="/" />} />

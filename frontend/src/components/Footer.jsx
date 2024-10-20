@@ -24,7 +24,7 @@ const Footer = () => {
             <Link
               to={items.link}
               key={i}
-              className="ms-4 text-zinc-300 hover:text-zinc-100"
+              className='ms-4 text-zinc-300 hover:text-zinc-100'
             >
               {items.title}{" "}
             </Link>
