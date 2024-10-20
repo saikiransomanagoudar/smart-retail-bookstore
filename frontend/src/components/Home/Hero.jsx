@@ -31,7 +31,6 @@ const Hero = () => {
             >
               Discover Books
             </button>
-            </button>
           </div>
         </div>
       </div>
