@@ -1,5 +1,5 @@
-import React from "react";
 import { Link } from "react-router-dom";
+import { SignUpButton, SignInButton } from '@clerk/clerk-react';
 
 const Hero = () => {
   return (
@@ -20,6 +20,18 @@ const Hero = () => {
             >
               Discover Books
             </Link>
+          </div>
+          <div className="flex justify-center lg:justify-start gap-4 mt-5">
+            <SignUpButton mode="modal">
+              <button className="text-3xl bg-yellow-100 rounded-full py-3 px-8 flex items-center justify-center text-black font-semibold border border-yellow-100 hover:bg-yellow-200 transition-all duration-300">
+                Sign up
+              </button>
+            </SignUpButton>
+            <SignInButton mode="modal">
+              <button className="text-3xl bg-zinc-900 rounded-full py-3 px-8 flex items-center justify-center text-white font-semibold border border-yellow-100 hover:bg-zinc-800 transition-all duration-300">
+                Sign in
+              </button>
+            </SignInButton>
           </div>
         </div>
       </div>
