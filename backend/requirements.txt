@@ -10,3 +10,5 @@ openai
 httpx
 gql
 langchain-openai
+langchain_community
+fastapi-cors

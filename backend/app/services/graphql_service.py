@@ -82,16 +82,12 @@ class GraphQLService:
         query = """
         query MyQuery($title: String!) {
             books(where: {title: {_ilike: $title, _is_null: false}}, limit: 1) {
-                id
                 title
                 release_year
-                release_date
+                pages
                 images(limit: 1, where: {url: {_is_null: false}}) {
                   url
                 }
-                rating
-                description
-                headline
                 image{
                   url
                 }
