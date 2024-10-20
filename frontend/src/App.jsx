@@ -17,6 +17,7 @@ import Settings from "./pages/Settings";
 import AllOrders from "./components/AdminPages/AllOrders";
 import AddBook from "./components/AdminPages/AddBook";
 import UpdateBooks from "./components/AdminPages/UpdateBooks";
+import RecommendedBooks from "./pages/RecommendedBooks";
 const App = () => {
   const dispatch = useDispatch();
   const role = useSelector((state) => state.auth.role);
@@ -36,6 +37,7 @@ const App = () => {
       <Routes>
         <Route exact path='/' element={<Home />} />
         <Route path='/all-books' element={<AllBooks />} />
+        <Route path='/recommended-books' element={<RecommendedBooks />} />{" "}
         <Route path='/view-book-details/:id' element={<ViewBookDetails />} />
         <Route path='/cart' element={<Cart />} />
         <Route path='/login' element={<Login />} />
