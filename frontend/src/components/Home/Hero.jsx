@@ -20,7 +20,7 @@ const Hero = () => {
           <h1 className="text-yellow-100 text-6xl font-semibold text-center lg:text-left">
             Discover Your Next Great Read
           </h1>
-          <p className="text-xl text-zinc-300 mt-5 text-center lg:text-left">
+          <p className='text-xl text-zinc-300 mt-5 text-center lg:text-left'>
             Uncover captivating stories, enriching knowledge, and endless
             inspiration in our curated collection of books
           </p>
@@ -30,6 +30,7 @@ const Hero = () => {
               className="my-5 lg:my-8 text-3xl bg-zinc-900 rounded-full py-3 px-8 flex items-center justify-center text-white font-semibold border border-yellow-100 hover:bg-zinc-800 transition-all duration-300"
             >
               Discover Books
+            </button>
             </button>
           </div>
         </div>
