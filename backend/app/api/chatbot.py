@@ -1,45 +1,36 @@
-import json
-
 from fastapi import APIRouter, Request
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi.responses import JSONResponse
 from backend.app.services.chatbot_service import chatbot_service
-import asyncio
 
 router = APIRouter()
-
 
 @router.post("/chat")
 async def chat(request: Request):
     data = await request.json()
     user_input = data.get("message")
 
-    async def event_generator():
-        try:
-            # Use chatbot_service to handle the chat logic
-            response = await chatbot_service.chat(user_input)
-
-            # If chatbot_service returns recommendations (as list), send a JSON response and stop SSE
-            if isinstance(response, list):
-                yield json.dumps(response)
-            else:
-                # Stream conversation response via SSE
-                yield f"data: {response}\n\n"
-                await asyncio.sleep(0.1)
-                yield "data: [DONE]\n\n"
-
-        except Exception as e:
-            yield f"data: Error: {str(e)}\n\n"
-            yield "data: [DONE]\n\n"
-
-    # Check if recommendations are ready (handled by chatbot_service)
-    response = await chatbot_service.chat(user_input)
-    if isinstance(response, list):
-        # Return JSON response for recommendations instead of SSE
+    try:
+        response = await chatbot_service.chat(user_input)
         return JSONResponse(content=response)
-    else:
-        # If not recommendations, return SSE stream for chat conversation
-        return StreamingResponse(event_generator(), media_type="text/event-stream")
+    except Exception as e:
+        return JSONResponse(content={
+            "type": "error",
+            "response": f"An error occurred: {str(e)}"
+        }, status_code=500)
 
+@router.post("/place-order")
+async def place_order(request: Request):
+    data = await request.json()
+    order_data = data.get("order_data")
+
+    try:
+        response = await chatbot_service.place_order(order_data)
+        return JSONResponse(content=response)
+    except Exception as e:
+        return JSONResponse(content={
+            "type": "error",
+            "response": f"An error occurred while placing the order: {str(e)}"
+        }, status_code=500)
 
 @router.get("/health")
 async def health_check():
