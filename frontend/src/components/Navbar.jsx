@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
@@ -24,7 +24,10 @@ const Navbar = () => {
       title: "All Books",
       link: "/all-books",
     },
-
+    {
+      title: "Recommended Books",
+      link: "/recommended-books",
+    },
     {
       title: "Cart",
       link: "/cart",
@@ -40,14 +43,21 @@ const Navbar = () => {
   ];
   const [Nav, setNav] = useState("hidden");
   if (isLoggedIn === false) {
-    links.splice(2);
+    links.splice(3);
   }
   if (isLoggedIn === true && role === "user") {
-    links.splice(4, 1);
+    links.splice(5, 1);
   }
   if (role === "admin") {
-    links.splice(3, 1);
+    links.splice(4, 1);
   }
+  const handleAllBooksClick = () => {
+    if (!isLoggedIn) {
+      navigate("/login");
+    } else {
+      navigate("/all-books");
+    }
+  };
 
   return (
     <>
@@ -98,9 +108,18 @@ const Navbar = () => {
                   }`}
                   key={i}
                 >
-                  <Link to={items.link} className='text-normal'>
-                    {items.title}
-                  </Link>
+                  {items.title === "All Books" ? (
+                    <div
+                      onClick={handleAllBooksClick}
+                      className='text-normal hover:cursor-pointer'
+                    >
+                      {items.title}
+                    </div>
+                  ) : (
+                    <Link to={items.link} className='text-normal'>
+                      {items.title}
+                    </Link>
+                  )}
                 </div>
               ))}
               {isLoggedIn === false ? (
