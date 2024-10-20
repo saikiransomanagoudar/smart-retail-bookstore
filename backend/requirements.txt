@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+sqlalchemy
+pydantic
+pydantic-settings
+alembic
+psycopg2-binary
+langchain
+openai
+httpx
+gql
+langchain-openai
