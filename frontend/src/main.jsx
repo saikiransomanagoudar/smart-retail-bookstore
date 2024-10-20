@@ -5,8 +5,7 @@ import "./index.css";
 import { BrowserRouter as Router } from "react-router-dom";
 import { ClerkProvider } from "@clerk/clerk-react";
 
-// const clerkFrontendApi = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
-const PUBLISHABLE_KEY = 'pk_test_ZmFtb3VzLXNhbG1vbi00LmNsZXJrLmFjY291bnRzLmRldiQ';
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

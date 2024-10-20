@@ -92,6 +92,18 @@ router.get("/get-recent-books", async (req, res) => {
     return res.status(500).json({ message: error });
   }
 });
+router.get("/get-recommended-books", async (req, res) => {
+  try {
+    const books = await Book.find().sort({ createdAt: -1 }).limit(4);
+    return res.json({
+      status: "Success",
+      data: books,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: error });
+  }
+});
 
 router.get("/get-book-by-id/:id", async (req, res) => {
   try {
