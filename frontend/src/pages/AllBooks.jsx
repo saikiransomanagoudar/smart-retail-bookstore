@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import BookCard from "../components/Books/BookCard";
 import axios from "axios";
 import Loader from "./Loader";
