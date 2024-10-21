@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useUser, SignOutButton } from "@clerk/clerk-react";
 
 const Navbar = () => {
-  const { isSignedIn, user } = useUser();
+  const { isSignedIn } = useUser();
   const navigate = useNavigate();
   const [Nav, setNav] = useState("hidden");
   const [showDropdown, setShowDropdown] = useState(false);
@@ -89,7 +89,7 @@ const Navbar = () => {
               ) : (
                 <div className="relative">
                   <img
-                    src={user?.profileImageUrl || "https://via.placeholder.com/150"}
+                    src="https://cdn-icons-png.flaticon.com/128/149/149071.png"
                     alt="profile"
                     className="h-10 w-10 rounded-full cursor-pointer"
                     onClick={() => setShowDropdown(!showDropdown)}
