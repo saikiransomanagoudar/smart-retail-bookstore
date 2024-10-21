@@ -16,6 +16,8 @@ import AllOrders from "./components/AdminPages/AllOrders";
 import AddBook from "./components/AdminPages/AddBook";
 import UpdateBooks from "./components/AdminPages/UpdateBooks";
 import { useUser } from "@clerk/clerk-react";
+import AuthorsCard from "./components/Authors/AuthorsCards";
+import Authors from "./pages/Authors";
 
 const App = () => {
   const { user, isSignedIn } = useUser();
@@ -46,6 +48,7 @@ const App = () => {
           path="/signup/sso-callback"
           element={!isSignedIn ? <Signup /> : <Navigate to="/" />}
         />
+        <Route path="/Authors" element={<Authors />} />
         <Route
           path="/cart"
           element={isSignedIn ? <Cart /> : <Navigate to="/login" />}
