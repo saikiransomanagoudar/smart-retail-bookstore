@@ -1,6 +1,17 @@
-import { SignUp } from "@clerk/clerk-react";
+import { SignUp, useUser } from "@clerk/clerk-react";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Signup = () => {
+  const { isSignedIn } = useUser();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isSignedIn) {
+      navigate("/");
+    }
+  }, [isSignedIn, navigate]);
+
   return (
     <div className="flex items-center justify-center h-screen bg-gradient-to-r from-blue-500 via-green-500 to-teal-500">
       <div className="w-full max-w-md">

@@ -30,11 +30,25 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/all-books" element={<AllBooks />} />
-        <Route path='/recommended-books' element={<RecommendedBooks />} />{" "}
+        <Route path="/recommended-books" element={<RecommendedBooks />} />{" "}
         <Route path="/view-book-details/:id" element={<ViewBookDetails />} />
-        <Route path="/login" element={!isSignedIn ? <Login /> : <Navigate to="/" />} />
-        <Route path="/signup" element={!isSignedIn ? <Signup /> : <Navigate to="/" />} />
         <Route path="/Authors" element={<Authors />} />
+        <Route
+          path="/login"
+          element={!isSignedIn ? <Login /> : <Navigate to="/" />}
+        />
+        <Route
+          path="/signup"
+          element={!isSignedIn ? <Signup /> : <Navigate to="/" />}
+        />
+        <Route
+          path="/login/sso-callback"
+          element={!isSignedIn ? <Login /> : <Navigate to="/" />}
+        />
+        <Route
+          path="/signup/sso-callback"
+          element={!isSignedIn ? <Signup /> : <Navigate to="/" />}
+        />
         <Route
           path="/cart"
           element={isSignedIn ? <Cart /> : <Navigate to="/login" />}
