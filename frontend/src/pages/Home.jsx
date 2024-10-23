@@ -4,6 +4,8 @@ import RecentlyAdded from "../components/Home/RecentlyAdded";
 import RecommendedBooks from "../components/Home/RecommendedBooks";
 import FavAuthors from "../components/Home/FavAuthors";
 import { useUser } from "@clerk/clerk-react";
+import Carousel from "../components/Home/carousel";
+import CarouselBooks from "../components/Home/CarouselBooks";
 
 const Home = () => {
   const { isSignedIn, user } = useUser(); // Retrieve user info from Clerk
@@ -36,9 +38,8 @@ const Home = () => {
             <FavAuthors /> // Show favorite authors if it's the first login
           ) : (
             <>
-              <Hero />
-              <RecommendedBooks />
-              <RecentlyAdded />
+             <CarouselBooks />
+              <Carousel />
             </>
           )}
         </>
