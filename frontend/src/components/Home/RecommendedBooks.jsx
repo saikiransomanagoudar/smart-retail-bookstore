@@ -8,7 +8,7 @@ const RecommendedBooks = () => {
   useEffect(() => {
     const fetch = async () => {
       const response = await axios.get(
-        "http://localhost:1000/api/v1/get-recommended-books"
+        "http://localhost:1000/api/v1/initial-recommendations"
         // Replace with actual API for recommended books
       );
       setBooks(response.data.data);
