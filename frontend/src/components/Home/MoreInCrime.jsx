@@ -25,7 +25,7 @@ const movies = [
     { id: 5, title: "CTRL", image: "/Authors/Mark-Twain.jpg" },
   ];
 
-const Carousel = () => {
+const MoreInCrime = () => {
   const settings = {
     dots: false,
     infinite: true,
@@ -92,7 +92,7 @@ const Carousel = () => {
     <div className="bg-zinc-900">
     <div className="mx-auto  flex flex-col px-10 py-8 lg:py-0">
     <div>
-    <h1 className="text-3xl font-semibold text-left my-5 text-yellow-100">Authors Who Shaped the World of Books</h1>
+    <h1 className="text-3xl font-semibold text-left mt-5 text-yellow-100">More In Crime</h1>
     </div>
     
     <div className="relative w-full p-8">
@@ -119,4 +119,4 @@ const Carousel = () => {
   );
 };
 
-export default Carousel;
+export default MoreInCrime;

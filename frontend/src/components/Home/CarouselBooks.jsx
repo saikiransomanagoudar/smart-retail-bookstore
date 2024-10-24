@@ -106,7 +106,7 @@ const CarouselBooks = () => {
     <div className="bg-zinc-900">
     <div className="mx-auto  flex flex-col px-10 py-8 lg:py-0">
     <div>
-    <h1 className="text-3xl font-semibold text-center mt-5 text-yellow-100">Favorite Books</h1>
+    <h1 className="text-3xl font-semibold text-left mt-5 text-yellow-100">Favorite Books</h1>
     </div>
     
     <div className="relative w-full p-8">

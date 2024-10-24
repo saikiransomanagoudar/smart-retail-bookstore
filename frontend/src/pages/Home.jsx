@@ -6,6 +6,9 @@ import FavAuthors from "../components/Home/FavAuthors";
 import { useUser } from "@clerk/clerk-react";
 import Carousel from "../components/Home/carousel";
 import CarouselBooks from "../components/Home/CarouselBooks";
+import MoreInCrime from "../components/Home/MoreInCrime";
+import MoreInMystery from "../components/Home/MoreInMystery";
+import MoreInRowling from "../components/Home/MoreRowling";
 
 const Home = () => {
   const { isSignedIn, user } = useUser(); // Retrieve user info from Clerk
@@ -38,7 +41,10 @@ const Home = () => {
             <FavAuthors /> // Show favorite authors if it's the first login
           ) : (
             <>
-             <CarouselBooks />
+              <MoreInCrime />
+              <MoreInMystery />
+              <MoreInRowling />
+              <CarouselBooks />
               <Carousel />
             </>
           )}
