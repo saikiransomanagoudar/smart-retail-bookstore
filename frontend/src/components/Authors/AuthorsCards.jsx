@@ -64,7 +64,7 @@ const AuthorCards = () => {
   return (
     <>
       <div className='bg-zinc-900 h-auto w-full flex flex-col lg:flex-col px-10 py-8 lg:py-0'>
-      <h1 class="text-6xl font-semibold text-center my-5 text-yellow-100">Select your favorite Authors</h1>
+      <h1 class="text-3xl font-semibold text-center my-5 text-yellow-100">Select your favorite Authors</h1>
      
     <div className="grid grid-cols-1 gap-6 md:grid-cols-3 w-[1200px] mx-auto my-6">
       {authors.map((author, index) => (
@@ -75,7 +75,7 @@ const AuthorCards = () => {
             selectedCards.includes(index) ? 'bg-gray-300' : 'bg-white'
           }`}
         >
-          <img className="w-12 h-12 rounded-full" src={author.image} alt={`${author.name} Picture`} />
+          <img className="w-[4rem] h-[4rem] rounded-full" src={author.image} alt={`${author.name} Picture`} />
           <div className="text-center">
             <strong>{author.name}</strong> <br />
             <span>{author.description}</span>

@@ -106,7 +106,7 @@ const CarouselBooks = () => {
     <div className="bg-zinc-900">
     <div className="mx-auto  flex flex-col px-10 py-8 lg:py-0">
     <div>
-    <h1 className="text-6xl font-semibold text-center my-5 text-yellow-100">Favorite Books</h1>
+    <h1 className="text-3xl font-semibold text-center mt-5 text-yellow-100">Favorite Books</h1>
     </div>
     
     <div className="relative w-full p-8">
@@ -118,9 +118,9 @@ const CarouselBooks = () => {
               <img
                 src={book.image}
                 alt={book.label}
-                className="rounded-lg mb-2"
+                className="rounded-lg mb-2 w-[15.25rem] h-[12.75rem] object-cover"
               />
-              <h2 className="text-lg font-semibold">{book.label}</h2>
+              <h2 className="text-lg font-semibold text-center">{book.label}</h2>
               <p className="text-red-500">{book.status}</p>
             </div>
           </div>
