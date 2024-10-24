@@ -8,14 +8,13 @@ import Carousel from "../components/Home/carousel";
 import CarouselBooks from "../components/Home/CarouselBooks";
 
 const Home = () => {
-  const { isSignedIn, user } = useUser(); // Retrieve user info from Clerk
+  const { isSignedIn, user } = useUser();
   const [isFirstLogin, setIsFirstLogin] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
 
     if (isSignedIn && user) {
-      // Example: Check if it's the user's first login (you can replace this with your logic)
       const firstLogin = localStorage.getItem(`firstLogin_${user.id}`);
       if (!firstLogin) {
         setIsFirstLogin(true);
@@ -35,7 +34,7 @@ const Home = () => {
       ) : (
         <>
           {isFirstLogin ? (
-            <FavAuthors /> // Show favorite authors if it's the first login
+            <FavAuthors />
           ) : (
             <>
              <CarouselBooks />
