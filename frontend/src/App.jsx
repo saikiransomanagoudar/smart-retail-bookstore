@@ -32,6 +32,7 @@ const App = () => {
         <Route path="/all-books" element={<AllBooks />} />
         <Route path="/recommended-books" element={<RecommendedBooks />} />{" "}
         <Route path="/view-book-details/:id" element={<ViewBookDetails />} />
+        <Route path="/Authors" element={<Authors />} />
         <Route
           path="/login"
           element={!isSignedIn ? <Login /> : <Navigate to="/" />}
@@ -48,7 +49,6 @@ const App = () => {
           path="/signup/sso-callback"
           element={!isSignedIn ? <Signup /> : <Navigate to="/" />}
         />
-        <Route path="/Authors" element={<Authors />} />
         <Route
           path="/cart"
           element={isSignedIn ? <Cart /> : <Navigate to="/login" />}
