@@ -18,6 +18,17 @@ class GraphQLService:
         except Exception as e:
             print(f"An error occurred while executing GraphQL query: {str(e)}")
             return {}
+    
+    def extract_author_from_dto(self, book: Dict) -> None:
+        dto = book.get("dto")
+        if dto and isinstance(dto, dict):
+            author = dto.get("author")
+            if author:
+                book["author"] = author
+            else:
+                book["author"] = "Unknown Author"
+        else:
+            book["author"] = "Unknown Author"
 
     async def get_trending_books_ids(self) -> List[int]:
         query = """
@@ -39,7 +50,7 @@ class GraphQLService:
                 release_year
                 release_date
                 images(limit: 1, where: {url: {_is_null: false}}) {
-                  url
+                    url
                 }
                 rating
                 pages
@@ -50,7 +61,13 @@ class GraphQLService:
         """
         variables = {"ids": book_ids}
         result = await self.execute_query(query, variables)
-        return result.get("books", [])
+        print(f"GraphQL Result: {result}")
+        books = result.get("books", [])
+
+        for book in books:
+            self.extract_author_from_dto(book)
+        
+        return books
 
     async def get_book_details_by_titles(self, titles: List[str]) -> List[Dict]:
         query = """
@@ -76,7 +93,12 @@ class GraphQLService:
         """
         variables = {"titles": titles}
         result = await self.execute_query(query, variables)
-        return result.get("books", [])
+        print(f"GraphQL Result: {result}")
+        books = result.get("books", [])
+    
+        for book in books:
+            self.extract_author_from_dto(book)
+        return books
 
     async def get_book_details_by_title_chatbot(self, title: str) -> List[Dict]:
         query = """
@@ -96,6 +118,10 @@ class GraphQLService:
         """
         variables = {"title": title}
         result = await self.execute_query(query, variables)
-        return result.get("books", [])
+        books = result.get("books", [])
+    
+        for book in books:
+            self.extract_author_from_dto(book)
+        return books
 
 graphql_service = GraphQLService(settings.HARDCOVER_API_TOKEN)

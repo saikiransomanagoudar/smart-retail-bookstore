@@ -3,16 +3,8 @@ import { Link } from "react-router-dom";
 const Footer = () => {
   const links = [
     {
-      title: "Home",
-      link: "/",
-    },
-    {
       title: "About Us",
       link: "/about-us",
-    },
-    {
-      title: "All Books",
-      link: "/all-books",
     },
   ];
   return (

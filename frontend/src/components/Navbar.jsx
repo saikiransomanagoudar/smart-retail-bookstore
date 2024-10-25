@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useUser, SignOutButton } from "@clerk/clerk-react";
 
 const Navbar = () => {
   const { isSignedIn } = useUser();
-  const navigate = useNavigate();
+
   const [Nav, setNav] = useState("hidden");
   const [showDropdown, setShowDropdown] = useState(false);
 
@@ -12,19 +12,9 @@ const Navbar = () => {
 
   if (isSignedIn) {
     links.push(
-      { title: "All Books", link: "/all-books" },
-      { title: "Recommended Books", link: "/recommended-books" },
-      { title: "Cart", link: "/cart" }
+      { title: "Cart", link: "/cart" },
     );
   }
-
-  const handleAllBooksClick = () => {
-    if (!isSignedIn) {
-      navigate("/login");
-    } else {
-      navigate("/all-books");
-    }
-  };
 
   return (
     <>
@@ -67,18 +57,9 @@ const Navbar = () => {
                   className="mx-3 hover:text-blue-300 rounded transition-all duration-300 hover:cursor-pointer"
                   key={i}
                 >
-                  {items.title === "All Books" ? (
-                    <div
-                      onClick={handleAllBooksClick}
-                      className="text-normal hover:cursor-pointer"
-                    >
-                      {items.title}
-                    </div>
-                  ) : (
-                    <Link to={items.link} className="text-normal">
-                      {items.title}
-                    </Link>
-                  )}
+                  <Link to={items.link} className="text-normal">
+                    {items.title}
+                  </Link>
                 </div>
               ))}
 
