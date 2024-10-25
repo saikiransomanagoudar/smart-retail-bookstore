@@ -1,16 +1,25 @@
 import { useNavigate } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
+import { useState } from "react";
 
 const Hero = () => {
   const { isSignedIn } = useUser();
   const navigate = useNavigate();
 
+  const [showGenreModal, setShowGenreModal] = useState(false);
+  const [setSelectedGenres] = useState([]);
+
   const handleDiscoverBooksClick = () => {
     if (!isSignedIn) {
       navigate("/login");
     } else {
-      navigate("/all-books");
+      setShowGenreModal(true);
     }
+  };
+
+  const handleGenreNext = (genres) => {
+    setSelectedGenres(genres);
+    setShowGenreModal(false);
   };
 
   return (
@@ -21,8 +30,7 @@ const Hero = () => {
             Discover Your Next Great Read
           </h1>
           <p className='text-xl text-zinc-300 mt-5 text-center lg:text-left'>
-            Uncover captivating stories, enriching knowledge, and endless
-            inspiration in our curated collection of books
+            Revolutionizing Book Shopping with AI-Powered Recommendations
           </p>
           <div className="flex justify-center lg:justify-start">
             <button
