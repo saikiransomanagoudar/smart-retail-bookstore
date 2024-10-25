@@ -31,3 +31,21 @@ async def save_user_preferences(user_id: str, preferences: dict, db: Session):
         )
         db.add(new_preferences)
     db.commit()
+
+async def get_user_preferences(user_id: str, db: Session):
+    try:
+        user_preferences = db.query(UserPreferences).filter(UserPreferences.user_id == user_id).first()
+        if user_preferences:
+            return {
+                "user_id": user_preferences.user_id,
+                "favorite_books": user_preferences.favorite_books.split(', ') if user_preferences.favorite_books else [],
+                "favorite_authors": user_preferences.favorite_authors.split(', ') if user_preferences.favorite_authors else [],
+                "preferred_genres": user_preferences.preferred_genres.split(', ') if user_preferences.preferred_genres else [],
+                "themes_of_interest": user_preferences.themes_of_interest.split(', ') if user_preferences.themes_of_interest else [],
+                "reading_level": user_preferences.reading_level
+            }
+        else:
+            return None
+    except Exception as e:
+        print(f"Error retrieving user preferences: {str(e)}")
+        return None

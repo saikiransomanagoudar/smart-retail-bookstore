@@ -1,43 +1,31 @@
-import { Link } from "react-router-dom";
-import axios from "axios";
-const BookCard = ({ image, title, author, price, bookid, fav }) => {
-  const headers = {
-    bookid: bookid,
-    id: localStorage.getItem("id"),
-    authorization: `Bearer ${localStorage.getItem("token")}`,
-  };
-  const removeFromFavourite = async () => {
-    try {
-      const response = await axios.put(
-        "http://localhost:1000/api/v1/remove-book-from-favourite",
-        {},
-        { headers }
-      );
-      alert(response.data.message);
-    } catch (error) {
-      console.log(error);
-    }
-  };
+import PropTypes from "prop-types";
+
+const BookCard = ({ image, title, author, price, description }) => {
   return (
-    <div className='w-full bg-zinc-800 text-zinc-100 rounded p-4'>
-      <Link to={`/view-book-details/${bookid}`} className=''>
-        <div className='w-full flex items-center justify-center bg-zinc-900 '>
-          <img src={image} alt='book' className='h-40 object-cover' />
+    <div className="w-full transform hover:scale-105 transition-transform duration-300 cursor-pointer">
+      <div className="bg-gray-800 text-white rounded-lg shadow-lg p-4 relative overflow-hidden hover:bg-gray-700 transition-colors duration-300 book-card">
+        <div className="w-full flex items-center justify-center bg-gray-700 rounded-lg shadow-md mb-4 book-cover">
+          <img
+            src={image}
+            alt="book"
+            className="h-48 w-full object-cover rounded-lg book-image"
+          />
         </div>
-        <h1 className='mt-4 text-xl font-semibold'>{title}</h1>
-        <p className='mt-2 text-zinc-400 font-semibold'>by {author}</p>
-        <p className='mt-2 text-zinc-200 font-semibold text-xl'>$ {price}</p>
-      </Link>
-      {fav === true && (
-        <button
-          className='mt-4 bg-red-100 w-full rounded text-red-600  py-2 font-semibold hover:bg-red-200 transition-all duration-300'
-          onClick={removeFromFavourite}
-        >
-          Remove from favourites
-        </button>
-      )}
+        <h1 className="mt-2 text-lg font-semibold">{title}</h1>
+        <p className="mt-1 text-gray-300">by {author}</p>
+        <p className="mt-1 text-gray-400">{description}</p>
+        <p className="mt-1 text-gray-400">$ {price}</p>
+      </div>
     </div>
   );
+};
+
+BookCard.propTypes = {
+  image: PropTypes.string.isRequired,
+  title: PropTypes.string.isRequired,
+  author: PropTypes.string.isRequired,
+  description: PropTypes.string.isRequired,
+  price: PropTypes.number.isRequired,
 };
 
 export default BookCard;

@@ -9,7 +9,7 @@ app = FastAPI(title=settings.PROJECT_NAME, version=settings.PROJECT_VERSION)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -23,7 +23,6 @@ app.include_router(chatbot_router, prefix="/api/chatbot", tags=["chatbot"])
 @app.get("/")
 async def root():
     return {"message": "Welcome to the Book Recommendation System API"}
-
 
 if __name__ == "__main__":
     import uvicorn
