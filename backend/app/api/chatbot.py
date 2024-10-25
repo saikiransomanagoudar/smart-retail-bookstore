@@ -22,7 +22,6 @@ async def chat(request: Request):
 async def place_order(request: Request):
     data = await request.json()
     order_data = data.get("order_data")
-
     try:
         response = await chatbot_service.place_order(order_data)
         return JSONResponse(content=response)
