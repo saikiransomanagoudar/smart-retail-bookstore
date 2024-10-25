@@ -2,22 +2,31 @@ from typing import List, Dict
 from gql import gql, Client
 from gql.transport.aiohttp import AIOHTTPTransport
 from backend.app.core.config import settings
+import asyncio
+
 
 class GraphQLService:
     def __init__(self, token: str):
-        headers = {
-            "Authorization": f"{token}"
-        }
-        transport = AIOHTTPTransport(url=settings.HARDCOVER_API_URL, headers=headers)
-        self.client = Client(transport=transport, fetch_schema_from_transport=True)
+        self.token = token
+        self.url = settings.HARDCOVER_API_URL
+        self._lock = asyncio.Lock()
 
     async def execute_query(self, query: str, variables: Dict = None) -> Dict:
-        try:
-            result = await self.client.execute_async(gql(query), variable_values=variables)
-            return result
-        except Exception as e:
-            print(f"An error occurred while executing GraphQL query: {str(e)}")
-            return {}
+        async with self._lock:
+            try:
+                transport = AIOHTTPTransport(
+                    url=self.url,
+                    headers={"Authorization": f"{self.token}"}
+                )
+                async with Client(
+                        transport=transport,
+                        fetch_schema_from_transport=True
+                ) as session:
+                    result = await session.execute(gql(query), variable_values=variables)
+                    return result
+            except Exception as e:
+                print(f"An error occurred while executing GraphQL query: {str(e)}")
+                return {}
 
     def extract_author_from_dto(self, book: Dict) -> None:
         dto = book.get("dto")
@@ -60,31 +69,32 @@ class GraphQLService:
         """
         variables = {"ids": book_ids}
         result = await self.execute_query(query, variables)
-        books = result.get("books", [])
+        return result.get("books", [])
 
-        return books
+    async def get_book_details_by_titles(self, title: str) -> List[Dict]:
 
-    async def get_book_details_by_titles(self, titles: List[str]) -> List[Dict]:
         query = """
-        query MyQuery($titles: [String!]!) {
-            books(where: {
-                title: {_in: $titles}
-            }, distinct_on: title) {
+        query MyQuery($title: String!) {
+            books(where: {title: {_ilike: $title}, image_id: {_is_null: false}}) {
                 id
                 title
                 release_year
                 release_date
-                images(limit: 1, where: {url: {_is_null: false}}) {
-                    url
-                }
                 rating
                 pages
+                images(limit: 1, where: {url: {_is_null: false}}) {
+                  url
+                }
+                image {
+                  url
+                }
+                description
+                headline
             }
         }
         """
-        variables = {"titles": titles}
+        variables = {"title": title}
         result = await self.execute_query(query, variables)
-        print(f"GraphQL Result: {result}")
         books = result.get("books", [])
 
         for book in books:
@@ -114,5 +124,6 @@ class GraphQLService:
         for book in books:
             self.extract_author_from_dto(book)
         return books
+
 
 graphql_service = GraphQLService(settings.HARDCOVER_API_TOKEN)
