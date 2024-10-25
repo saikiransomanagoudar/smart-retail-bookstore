@@ -18,7 +18,7 @@ class GraphQLService:
         except Exception as e:
             print(f"An error occurred while executing GraphQL query: {str(e)}")
             return {}
-    
+
     def extract_author_from_dto(self, book: Dict) -> None:
         dto = book.get("dto")
         if dto and isinstance(dto, dict):
@@ -33,7 +33,7 @@ class GraphQLService:
     async def get_trending_books_ids(self) -> List[int]:
         query = """
         query GetTrendingBooks {
-            books_trending(from: "2010-01-01", limit: 20, offset: 10) {
+            books_trending(from: "2010-01-01", limit: 10, offset: 10) {
                 ids
             }
         }
@@ -54,28 +54,21 @@ class GraphQLService:
                 }
                 rating
                 pages
-                dto
-                dto_combined(path: "genres")
+                description
             }
         }
         """
         variables = {"ids": book_ids}
         result = await self.execute_query(query, variables)
-        print(f"GraphQL Result: {result}")
         books = result.get("books", [])
 
-        for book in books:
-            self.extract_author_from_dto(book)
-        
         return books
 
     async def get_book_details_by_titles(self, titles: List[str]) -> List[Dict]:
         query = """
         query MyQuery($titles: [String!]!) {
             books(where: {
-                title: {_in: $titles},
-                release_year: {_is_null: false}, 
-                dto_combined: {_is_null: false}
+                title: {_in: $titles}
             }, distinct_on: title) {
                 id
                 title
@@ -86,8 +79,6 @@ class GraphQLService:
                 }
                 rating
                 pages
-                dto
-                dto_combined(path: "genres")
             }
         }
         """
@@ -95,7 +86,7 @@ class GraphQLService:
         result = await self.execute_query(query, variables)
         print(f"GraphQL Result: {result}")
         books = result.get("books", [])
-    
+
         for book in books:
             self.extract_author_from_dto(book)
         return books
@@ -119,7 +110,7 @@ class GraphQLService:
         variables = {"title": title}
         result = await self.execute_query(query, variables)
         books = result.get("books", [])
-    
+
         for book in books:
             self.extract_author_from_dto(book)
         return books

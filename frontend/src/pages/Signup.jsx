@@ -1,17 +1,6 @@
-import { SignUp, useUser } from "@clerk/clerk-react";
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { SignUp } from "@clerk/clerk-react";
 
 const Signup = () => {
-  const { isSignedIn } = useUser();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (isSignedIn) {
-      navigate("/");
-    }
-  }, [isSignedIn, navigate]);
-
   return (
     <div className="flex items-center justify-center h-screen bg-gradient-to-r from-blue-500 via-green-500 to-teal-500">
       <div className="w-full max-w-md">
@@ -19,6 +8,8 @@ const Signup = () => {
           path="/signup"
           routing="path"
           signInUrl="/login"
+          afterSignUpUrl="/preferences"  // Add this line
+          redirectUrl="/preferences"     // And this line
           appearance={{
             elements: {
               card: "bg-white shadow-lg rounded-lg text-gray-700 p-6",

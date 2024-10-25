@@ -1,192 +1,219 @@
-import { useState } from "react";
-import PropTypes from "prop-types";
+import { useState } from 'react';
+import { useUser } from "@clerk/clerk-react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const UserPreferences = ({ isOpen, onClose, onNext, userId }) => {
-  const [selectedGenres, setSelectedGenres] = useState([]);
-  const [selectedBook, setSelectedBook] = useState("");
-  const [selectedAuthor, setSelectedAuthor] = useState("");
-  const [themesOfInterest, setThemesOfInterest] = useState("");
-  const [readingLevel, setReadingLevel] = useState("beginner");
+const UserPreferences = () => {
+  const { user } = useUser();
+  const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    favorite_books: [],
+    favorite_authors: [],
+    preferred_genres: [],
+    themes_of_interest: [],
+    reading_level: "intermediate"
+  });
 
-  const bookOptions = [
-    { title: "Harry Potter and the Sorcerer's Stone", author: "J.K. Rowling" },
-    { title: "Harry Potter and the Chamber of Secrets", author: "J.K. Rowling" },
-    { title: "The Hobbit", author: "J.R.R. Tolkien" },
-    { title: "The Fellowship of the Ring", author: "J.R.R. Tolkien" },
-    { title: "Dune", author: "Frank Herbert" },
-    { title: "Foundation", author: "Isaac Asimov" },
-    { title: "Neuromancer", author: "William Gibson" },
-    { title: "Snow Crash", author: "Neal Stephenson" },
-    { title: "The Da Vinci Code", author: "Dan Brown" },
-    { title: "Angels & Demons", author: "Dan Brown" },
-    { title: "Gone Girl", author: "Gillian Flynn" },
-    { title: "The Girl with the Dragon Tattoo", author: "Stieg Larsson" },
-    { title: "The Book Thief", author: "Markus Zusak" },
-    { title: "All the Light We Cannot See", author: "Anthony Doerr" },
-    { title: "Wolf Hall", author: "Hilary Mantel" },
-    { title: "Bring Up the Bodies", author: "Hilary Mantel" },
-    { title: "Pride and Prejudice", author: "Jane Austen" },
-    { title: "Emma", author: "Jane Austen" },
-    { title: "Outlander", author: "Diana Gabaldon" },
-    { title: "Me Before You", author: "Jojo Moyes" }
+  // Predefined lists
+  const popularBooks = [
+    "The Great Gatsby", "1984", "Pride and Prejudice", 
+    "To Kill a Mockingbird", "The Hobbit", "Harry Potter",
+    "The Da Vinci Code", "The Alchemist", "The Catcher in the Rye",
+    "Lord of the Rings", "The Hunger Games", "The Shining"
+  ];
+
+  const popularAuthors = [
+    "J.K. Rowling", "Stephen King", "Jane Austen",
+    "George R.R. Martin", "Agatha Christie", "Dan Brown",
+    "Ernest Hemingway", "Mark Twain", "Charles Dickens",
+    "Virginia Woolf", "George Orwell", "Paulo Coelho"
   ];
 
   const genres = [
-    "Art",
-    "Biography",
-    "Comics",
-    "Children's",
-    "Fantasy",
-    "Horror",
-    "Romance",
-    "Science Fiction",
-    "Thriller",
-    "Travel"
+    "Fiction", "Mystery", "Thriller", "Romance", "Science Fiction",
+    "Fantasy", "Horror", "Historical Fiction", "Literary Fiction",
+    "Young Adult", "Children's", "Biography"
   ];
 
-  const handleGenreSelect = (genre) => {
-    setSelectedGenres((prev) =>
-      prev.includes(genre) ? prev.filter((g) => g !== genre) : [...prev, genre]
-    );
+  const themes = [
+    "Adventure", "Love", "Family", "Friendship", "Coming of Age",
+    "Good vs Evil", "Survival", "Redemption", "Identity", "Justice",
+    "Power", "Nature"
+  ];
+
+  const readingLevels = [
+    { value: "beginner", label: "Beginner" },
+    { value: "intermediate", label: "Intermediate" },
+    { value: "advanced", label: "Advanced" }
+  ];
+
+  const handleArraySelect = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: prev[field].includes(value)
+        ? prev[field].filter(item => item !== value)
+        : [...prev[field], value]
+    }));
   };
 
-  const handleBookSelection = (event) => {
-    const selected = bookOptions.find(
-      option => `${option.title} by ${option.author}` === event.target.value
-    );
-    setSelectedBook(selected ? selected.title : "");
-    setSelectedAuthor(selected ? selected.author : "");
-  };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
 
-  const handleNext = async () => {
-    const preferences = {
-      user_id: userId,
-      favorite_books: [selectedBook], 
-      favorite_authors: [selectedAuthor],
-      preferred_genres: selectedGenres,
-      themes_of_interest: themesOfInterest.split(',').map(theme => theme.trim()), // Convert comma-separated string to list
-      reading_level: readingLevel,
-    };
-  
     try {
-      const llmResponse = await axios.post(
-        "http://localhost:8000/api/recommendations/initial-recommendations",
-        preferences
-      );
-
-      const recommendedBooks = llmResponse.data;
-      onNext(recommendedBooks);
-
-      await axios.post(
-        "http://localhost:8000/api/recommendations/save-preferences",
-        preferences
-      );
-  
+      await axios.post("http://localhost:8000/api/recommendations/preferences", {
+        user_id: user.id,
+        ...formData
+      });
+      navigate("/dashboard");
     } catch (error) {
-      console.error("Error sending user preferences:", error);
+      console.error("Error saving preferences:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
-  
+
+  // Helper component for selectable buttons
+  const SelectableButton = ({ value, selected, onClick, className }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`
+        px-4 py-2 rounded-full text-sm font-medium transition-all duration-200
+        ${selected 
+          ? 'bg-indigo-100 text-indigo-700 border-2 border-indigo-500 shadow-inner' 
+          : 'bg-white text-gray-700 border border-gray-300 hover:border-indigo-500 hover:bg-indigo-50'}
+        ${className}
+      `}
+    >
+      {value}
+    </button>
+  );
+
   return (
-    isOpen && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white p-6 rounded-md max-w-md w-full">
-          <h2 className="text-2xl font-semibold mb-4 text-gray-800">
-            Select Your Preferences
-          </h2>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white shadow-2xl rounded-2xl p-6 md:p-10">
+          <div className="text-center mb-10">
+            <h2 className="text-4xl font-bold text-gray-900 mb-2">Welcome to BookStore!</h2>
+            <p className="text-xl text-gray-600">Help us personalize your reading experience</p>
+          </div>
 
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-2 text-gray-800">
-              Select Your Favorite Genres
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {genres.map((genre) => (
-                <button
-                  key={genre}
-                  onClick={() => handleGenreSelect(genre)}
-                  className={`px-4 py-2 rounded-md ${
-                    selectedGenres.includes(genre)
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-200 text-gray-800"
-                  }`}
-                >
-                  {genre}
-                </button>
-              ))}
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Favorite Books */}
+            <div className="space-y-4">
+              <label className="block text-lg font-semibold text-gray-900">
+                Select Your Favorite Books
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {popularBooks.map(book => (
+                  <SelectableButton
+                    key={book}
+                    value={book}
+                    selected={formData.favorite_books.includes(book)}
+                    onClick={() => handleArraySelect('favorite_books', book)}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
 
-          <div className="mb-4">
-            <label className="block text-gray-800 font-semibold mb-1">
-              Choose a Favorite Book:
-            </label>
-            <select
-              onChange={handleBookSelection}
-              className="w-full p-2 border border-gray-300 rounded-md text-gray-800"
-            >
-              <option value="">Select a Book by Author</option>
-              {bookOptions.map((option, index) => (
-                <option key={index} value={`${option.title} by ${option.author}`}>
-                  {option.title} by {option.author}
-                </option>
-              ))}
-            </select>
-          </div>
+            {/* Favorite Authors */}
+            <div className="space-y-4">
+              <label className="block text-lg font-semibold text-gray-900">
+                Select Your Favorite Authors
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {popularAuthors.map(author => (
+                  <SelectableButton
+                    key={author}
+                    value={author}
+                    selected={formData.favorite_authors.includes(author)}
+                    onClick={() => handleArraySelect('favorite_authors', author)}
+                  />
+                ))}
+              </div>
+            </div>
 
-          <div className="mb-4">
-            <label className="block text-gray-800 font-semibold mb-1">
-              Themes of Interest (comma-separated):
-            </label>
-            <input
-              type="text"
-              value={themesOfInterest}
-              onChange={(e) => setThemesOfInterest(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md text-gray-800"
-              placeholder="e.g., Adventure, Mystery"
-            />
-          </div>
+            {/* Preferred Genres */}
+            <div className="space-y-4">
+              <label className="block text-lg font-semibold text-gray-900">
+                Select Your Preferred Genres
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {genres.map(genre => (
+                  <SelectableButton
+                    key={genre}
+                    value={genre}
+                    selected={formData.preferred_genres.includes(genre)}
+                    onClick={() => handleArraySelect('preferred_genres', genre)}
+                  />
+                ))}
+              </div>
+            </div>
 
-          <div className="mb-6">
-            <label className="block text-gray-800 font-semibold mb-1">
-              Reading Level:
-            </label>
-            <select
-              value={readingLevel}
-              onChange={(e) => setReadingLevel(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md text-gray-800"
-            >
-              <option value="beginner">Beginner</option>
-              <option value="intermediate">Intermediate</option>
-              <option value="advanced">Advanced</option>
-            </select>
-          </div>
+            {/* Themes of Interest */}
+            <div className="space-y-4">
+              <label className="block text-lg font-semibold text-gray-900">
+                Select Themes That Interest You
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {themes.map(theme => (
+                  <SelectableButton
+                    key={theme}
+                    value={theme}
+                    selected={formData.themes_of_interest.includes(theme)}
+                    onClick={() => handleArraySelect('themes_of_interest', theme)}
+                  />
+                ))}
+              </div>
+            </div>
 
-          <div className="flex justify-end mt-6">
-            <button
-              onClick={handleNext}
-              className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
-            >
-              Next
-            </button>
-            <button
-              onClick={onClose}
-              className="ml-2 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
-            >
-              Close
-            </button>
-          </div>
+            {/* Reading Level */}
+            <div className="space-y-4">
+              <label className="block text-lg font-semibold text-gray-900">
+                Select Your Reading Level
+              </label>
+              <div className="flex gap-4">
+                {readingLevels.map(level => (
+                  <button
+                    key={level.value}
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, reading_level: level.value }))}
+                    className={`
+                      flex-1 py-3 rounded-lg text-sm font-medium transition-all duration-200
+                      ${formData.reading_level === level.value
+                        ? 'bg-indigo-600 text-white shadow-lg'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}
+                    `}
+                  >
+                    {level.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <div className="pt-6">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className={`
+                  w-full py-4 rounded-xl text-white font-medium text-lg
+                  transition-all duration-200 transform hover:scale-[1.02]
+                  ${isSubmitting
+                    ? 'bg-indigo-400 cursor-not-allowed'
+                    : 'bg-indigo-600 hover:bg-indigo-700 shadow-lg hover:shadow-xl'}
+                `}
+              >
+                {isSubmitting ? 'Saving...' : 'Continue to Dashboard'}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
-    )
+    </div>
   );
-};
-
-UserPreferences.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired,
-  onNext: PropTypes.func.isRequired,
-  userId: PropTypes.number.isRequired
 };
 
 export default UserPreferences;

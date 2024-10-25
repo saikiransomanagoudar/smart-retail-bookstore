@@ -16,7 +16,6 @@ app.add_middleware(
 )
 
 create_tables()
-
 app.include_router(recommendations_router, prefix="/api/recommendations", tags=["recommendations"])
 app.include_router(chatbot_router, prefix="/api/chatbot", tags=["chatbot"])
 
