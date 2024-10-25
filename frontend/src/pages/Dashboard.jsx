@@ -4,6 +4,7 @@ import axios from "axios";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import Chatbot from "../components/Chatbot/Chatbot";
 
 // Shimmer Animation CSS
 const shimmerAnimation = `
@@ -230,20 +231,6 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <style>{shimmerAnimation}</style>
-      
-      {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-semibold text-gray-900">Book Store</h1>
-            <nav className="flex space-x-6">
-              <button className="text-gray-600 hover:text-gray-900 font-medium">Browse</button>
-              <button className="text-gray-600 hover:text-gray-900 font-medium">Categories</button>
-              <button className="text-gray-600 hover:text-gray-900 font-medium">Wishlist</button>
-            </nav>
-          </div>
-        </div>
-      </header>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -279,9 +266,6 @@ const Dashboard = () => {
           <section className="mb-12">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-gray-900">Recommended for You</h2>
-              <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                View All
-              </button>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
               {loadingRecommended
@@ -303,6 +287,7 @@ const Dashboard = () => {
           </section>
         )}
       </main>
+      <Chatbot />
     </div>
   );
 };
