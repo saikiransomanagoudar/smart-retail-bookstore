@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
 import { useState } from "react";
-import UserPreferences from "../Modals/UserPreferences";
 
 const Hero = () => {
   const { isSignedIn } = useUser();
@@ -50,11 +49,6 @@ const Hero = () => {
           className="h-auto lg:h-[100%] object-cover"
         />
       </div>
-      <UserPreferences
-        isOpen={showGenreModal}
-        onClose={() => setShowGenreModal(false)}
-        onNext={handleGenreNext}
-      />
     </div>
   );
 };
