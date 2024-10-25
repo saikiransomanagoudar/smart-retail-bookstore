@@ -1,141 +1,184 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useUser, SignOutButton } from "@clerk/clerk-react";
+import { Search, ShoppingCart, Heart, Menu, X } from "lucide-react"; // Import icons
 
 const Navbar = () => {
-  const { isSignedIn } = useUser();
-
-  const [Nav, setNav] = useState("hidden");
+  const { isSignedIn, user } = useUser();
+  const [isNavOpen, setIsNavOpen] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
 
-  var links = [{ title: "Home", link: "/" }];
+  const links = [
+    { title: "Home", link: "/", icon: null },
+    { title: "Categories", link: "/categories", icon: null },
+    ...(isSignedIn ? [
+      { title: "Cart", link: "/cart", icon: <ShoppingCart className="w-5 h-5" /> },
+      { title: "Wishlist", link: "/wishlist", icon: <Heart className="w-5 h-5" /> }
+    ] : [])
+  ];
 
-  if (isSignedIn) {
-    links.push(
-      { title: "Cart", link: "/cart" },
-    );
-  }
+  const SearchBar = () => (
+    <div className="relative">
+      <input
+        type="text"
+        placeholder="Search books..."
+        className="w-full px-4 py-2 text-gray-900 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+      <Search className="absolute right-3 top-2.5 text-gray-500 w-5 h-5" />
+    </div>
+  );
 
   return (
-    <>
-      <nav className="relative flex w-full flex-nowrap items-center justify-between bg-zinc-800 py-2 text-white lg:flex-wrap lg:justify-start lg:py-4">
-        <div className="flex w-full flex-wrap items-center justify-between px-3">
-          <div className="ms-2 w-3/6 lg:w-1/6">
-            <Link
-              to="/"
-              className="flex text-2xl font-semibold items-center justify-center"
-            >
+    <nav className="fixed w-full top-0 z-50 bg-zinc-900 shadow-lg">
+      {/* Main Navbar */}
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <div className="flex-shrink-0">
+            <Link to="/" className="flex items-center space-x-3">
               <img
                 src="https://cdn-icons-png.flaticon.com/128/10433/10433049.png"
                 alt="logo"
-                className="h-10 me-4"
+                className="h-9 w-9"
               />
-              BookStore
+              <span className="text-white font-bold text-xl">BookStore</span>
             </Link>
           </div>
-          <div className="w-1/6 block lg:hidden">
-            <button
-              className="block border-0 bg-transparent px-2 hover:no-underline hover:shadow-none focus:no-underline focus:shadow-none focus:outline-none focus:ring-0 lg:hidden"
-              type="button"
-              onClick={() => setNav(Nav === "hidden" ? "block" : "hidden")}
-            >
-              <span className="[&>svg]:w-7 [&>svg]:stroke-white">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <path d="M3 6.75A.75.75 0 013.75 6h16.5a.75.75 0 010 1.5H3.75A.75.75 0 013 6.75zM3 12a.75.75 0 01.75-.75h16.5a.75.75 0 010 1.5H3.75A.75.75 0 013 12zm0 5.25a.75.75 0 01.75-.75h16.5a.75.75 0 010 1.5H3.75a.75.75 0 01-.75-.75z" />
-                </svg>
-              </span>
-            </button>
-          </div>
-          <div className="5/6 hidden lg:block">
-            <div className="flex items-center">
-              {links.map((items, i) => (
-                <div
-                  className="mx-3 hover:text-blue-300 rounded transition-all duration-300 hover:cursor-pointer"
-                  key={i}
-                >
-                  <Link to={items.link} className="text-normal">
-                    {items.title}
-                  </Link>
-                </div>
-              ))}
 
-              {!isSignedIn ? (
-                <>
-                  <Link
-                    to="/signup"
-                    className="rounded bg-blue-500 px-3 py-1 mx-3 hover:bg-white hover:text-zinc-900 transition-all duration-300"
-                  >
-                    Sign up / Sign in
-                  </Link>
-                </>
-              ) : (
-                <div className="relative">
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-8">
+            {/* Search Bar */}
+            <div className="w-96">
+              <SearchBar />
+            </div>
+
+            {/* Navigation Links */}
+            <div className="flex items-center space-x-6">
+              {links.map((item, i) => (
+                <Link
+                  key={i}
+                  to={item.link}
+                  className="flex items-center space-x-1 text-gray-300 hover:text-white transition-colors duration-200"
+                >
+                  {item.icon}
+                  <span>{item.title}</span>
+                </Link>
+              ))}
+            </div>
+
+            {/* Auth Section */}
+            {!isSignedIn ? (
+              <div className="flex items-center space-x-4">
+                <Link
+                  to="/login"
+                  className="text-gray-300 hover:text-white transition-colors duration-200"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  to="/signup"
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                >
+                  Sign up
+                </Link>
+              </div>
+            ) : (
+              <div className="relative">
+                <button
+                  onClick={() => setShowDropdown(!showDropdown)}
+                  className="flex items-center space-x-2 focus:outline-none"
+                >
                   <img
-                    src="https://cdn-icons-png.flaticon.com/128/149/149071.png"
+                    src={user?.imageUrl || "https://cdn-icons-png.flaticon.com/128/149/149071.png"}
                     alt="profile"
-                    className="h-10 w-10 rounded-full cursor-pointer"
-                    onClick={() => setShowDropdown(!showDropdown)}
+                    className="h-8 w-8 rounded-full border-2 border-blue-500"
                   />
-                  {showDropdown && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20">
-                      <Link
-                        to="/profile"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        Profile
-                      </Link>
-                      <SignOutButton>
-                        <button className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
-                          Logout
-                        </button>
-                      </SignOutButton>
+                  <span className="text-gray-300">{user?.firstName}</span>
+                </button>
+
+                {/* Dropdown Menu */}
+                {showDropdown && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50">
+                    <div className="px-4 py-2 border-b">
+                      <p className="text-sm font-medium text-gray-900">{user?.fullName}</p>
+                      <p className="text-sm text-gray-500">{user?.primaryEmailAddress?.emailAddress}</p>
                     </div>
-                  )}
-                </div>
-              )}
-            </div>
+                    <Link
+                      to="/profile"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setShowDropdown(false)}
+                    >
+                      Profile Settings
+                    </Link>
+                    <Link
+                      to="/orders"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setShowDropdown(false)}
+                    >
+                      My Orders
+                    </Link>
+                    <SignOutButton>
+                      <button className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                        Sign out
+                      </button>
+                    </SignOutButton>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-        </div>
-      </nav>
-      <div className={`5/6 ${Nav} lg:hidden bg-zinc-800 text-white px-12`}>
-        <div className="flex flex-col items-center">
-          {links.map((items, i) => (
-            <div
-              className="mx-3 hover:text-blue-300 rounded transition-all duration-300 hover:cursor-pointer my-3"
-              key={i}
-            >
-              <Link
-                to={`${items.link}`}
-                className="text-normal"
-                onClick={() => setNav("hidden")}
-              >
-                {items.title}
-              </Link>
-            </div>
-          ))}
-          {!isSignedIn && (
-            <>
-              <Link
-                to="/login"
-                className="rounded border border-blue-500 px-3 py-1 mx-3 hover:bg-white hover:text-zinc-900 transition-all duration-300"
-              >
-                Sign in
-              </Link>
-              <Link
-                to="/signup"
-                className="rounded bg-blue-500 px-3 py-1 my-4 md:my-0 mx-3 hover:bg-white hover:text-zinc-900 transition-all duration-300"
-              >
-                Sign up
-              </Link>
-            </>
-          )}
+
+          {/* Mobile menu button */}
+          <button
+            onClick={() => setIsNavOpen(!isNavOpen)}
+            className="md:hidden text-gray-300 hover:text-white"
+          >
+            {isNavOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
         </div>
       </div>
-    </>
+
+      {/* Mobile Navigation Menu */}
+      {isNavOpen && (
+        <div className="md:hidden bg-zinc-800">
+          <div className="px-4 py-3">
+            <SearchBar />
+          </div>
+          <div className="px-2 pt-2 pb-3 space-y-1">
+            {links.map((item, i) => (
+              <Link
+                key={i}
+                to={item.link}
+                className="flex items-center space-x-2 text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium"
+                onClick={() => setIsNavOpen(false)}
+              >
+                {item.icon}
+                <span>{item.title}</span>
+              </Link>
+            ))}
+            {!isSignedIn && (
+              <div className="space-y-2 pt-4">
+                <Link
+                  to="/login"
+                  className="block w-full text-center text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium"
+                  onClick={() => setIsNavOpen(false)}
+                >
+                  Sign in
+                </Link>
+                <Link
+                  to="/signup"
+                  className="block w-full text-center bg-blue-600 text-white px-3 py-2 rounded-md text-base font-medium hover:bg-blue-700"
+                  onClick={() => setIsNavOpen(false)}
+                >
+                  Sign up
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </nav>
   );
 };
 
