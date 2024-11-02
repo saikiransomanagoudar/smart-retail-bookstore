@@ -33,13 +33,13 @@ class BookRecommendation(BaseModel):
     price: float
 
 @router.post("/initial-recommendations")
-async def initial_recommendations(request: dict, db: Session = Depends(get_db)):  # Add db parameter here
+async def initial_recommendations(request: dict, db: Session = Depends(get_db)):
     try:
         user_id = request.get("userId")
         if not user_id:
             raise HTTPException(status_code=400, detail="userId is required")
 
-        recommendations = await get_recommendations(user_id, db)  # Pass db here
+        recommendations = await get_recommendations(user_id, db)
         return recommendations
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -52,7 +52,6 @@ async def get_trending_book():
     except Exception as e:
         raise HTTPException(status_code=500, detail="Error fetching trending books")
 
-# Changed from /user-preferences/save to just /preferences
 @router.post("/preferences")
 async def save_preferences(preferences: UserPreferencesInput, db: Session = Depends(get_db)):
     try:
@@ -61,7 +60,6 @@ async def save_preferences(preferences: UserPreferencesInput, db: Session = Depe
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Changed from /user-preferences/{user_id} to just /preferences/{user_id}
 @router.get("/preferences/{user_id}")
 async def get_user_preferences_endpoint(user_id: str, db: Session = Depends(get_db)):
     try:

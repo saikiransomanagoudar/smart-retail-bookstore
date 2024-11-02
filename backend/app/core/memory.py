@@ -1,4 +1,4 @@
-# backend/app/core/memory.py
+
 from langchain.memory import ConversationSummaryMemory
 
 class ChatbotMemory:

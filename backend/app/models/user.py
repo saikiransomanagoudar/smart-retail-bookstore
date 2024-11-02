@@ -7,7 +7,7 @@ from typing import List, Optional, Dict
 
 class UserPreferences(Base):
     __tablename__ = "user_preferences"
-    user_id = Column(String, primary_key=True, index=True)  # Changed to String for Clerk ID
+    user_id = Column(String, primary_key=True, index=True)
     favorite_books = Column(Text)
     favorite_authors = Column(Text)
     preferred_genres = Column(Text)
