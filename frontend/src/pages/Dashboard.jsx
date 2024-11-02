@@ -27,7 +27,7 @@ const LoadingBookCard = ({ isCarousel = false }) => (
       <div className="relative h-52">
         <div
           className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 animate-shimmer"
-          style={{ backgroundSize: '200% 100%' }}
+          style={{ backgroundSize: "200% 100%" }}
         />
         <div className="absolute top-2 right-2">
           <div className="h-7 w-16 bg-white/90 rounded-lg" />
@@ -53,16 +53,20 @@ const LoadingBookCard = ({ isCarousel = false }) => (
   </div>
 );
 
-const BookCard = ({ image, title, rating, pages, price, releaseYear, isCarousel = false }) => {
+const BookCard = ({
+  image,
+  title,
+  rating,
+  pages,
+  price,
+  releaseYear,
+  isCarousel = false,
+}) => {
   return (
     <div className={isCarousel ? "mx-2" : ""}>
       <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1">
         <div className="relative h-52">
-          <img
-            src={image}
-            alt={title}
-            className="w-full h-full object-cover"
-          />
+          <img src={image} alt={title} className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
           <div className="absolute top-2 right-2">
             <div className="bg-white/90 backdrop-blur-sm text-gray-900 px-2.5 py-1 rounded-lg text-sm font-semibold shadow-lg">
@@ -94,7 +98,9 @@ const BookCard = ({ image, title, rating, pages, price, releaseYear, isCarousel 
           </div>
           <button
             className="w-full bg-blue-50 hover:bg-blue-100 text-blue-600 text-sm font-medium py-1.5 rounded-lg transition-colors duration-200"
-            onClick={() => {/* Add your cart logic here */ }}
+            onClick={() => {
+              /* Add your cart logic here */
+            }}
           >
             Add to Cart
           </button>
@@ -125,33 +131,33 @@ const Dashboard = () => {
         breakpoint: 1536,
         settings: {
           slidesToShow: 5,
-        }
+        },
       },
       {
         breakpoint: 1280,
         settings: {
           slidesToShow: 4,
-        }
+        },
       },
       {
         breakpoint: 1024,
         settings: {
           slidesToShow: 3,
-        }
+        },
       },
       {
         breakpoint: 768,
         settings: {
           slidesToShow: 2,
-        }
+        },
       },
       {
         breakpoint: 640,
         settings: {
           slidesToShow: 1,
-        }
-      }
-    ]
+        },
+      },
+    ],
   };
 
   // Fetch popular books
@@ -170,7 +176,7 @@ const Dashboard = () => {
           setPopularBooks(response.data);
         }
       } catch (error) {
-        if (error.name === 'CanceledError') return;
+        if (error.name === "CanceledError") return;
         console.error("Error fetching popular books:", error);
       } finally {
         if (isMounted) {
@@ -206,12 +212,12 @@ const Dashboard = () => {
           { userId: user.id },
           { signal: controller.signal }
         );
-        
+
         if (isMounted) {
           setRecommendedBooks(response.data || []);
         }
       } catch (error) {
-        if (error.name === 'CanceledError') return;
+        if (error.name === "CanceledError") return;
         console.error("Error fetching recommendations:", error);
       } finally {
         if (isMounted) {
@@ -235,54 +241,62 @@ const Dashboard = () => {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Popular Books Section */}
-        <section className="mb-12">
+        <section className="mb-12" style={{ paddingTop: "3rem" }}>
+          {" "}
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">Popular Books</h2>
+            <h2
+              className="text-xl font-semibold text-gray-900"
+            >
+              Popular Books
+            </h2>
           </div>
           <div className="relative">
             <Slider {...carouselSettings}>
               {loadingPopular
-                ? Array(6).fill(null).map((_, index) => (
-                  <LoadingBookCard key={index} isCarousel={true} />
-                ))
+                ? Array(6)
+                    .fill(null)
+                    .map((_, index) => (
+                      <LoadingBookCard key={index} isCarousel={true} />
+                    ))
                 : popularBooks.map((book) => (
-                  <BookCard
-                    key={book.id}
-                    image={book.image_url}
-                    title={book.title}
-                    rating={book.rating}
-                    pages={book.pages}
-                    price={book.price}
-                    releaseYear={book.release_year}
-                    isCarousel={true}
-                  />
-                ))}
+                    <BookCard
+                      key={book.id}
+                      image={book.image_url}
+                      title={book.title}
+                      rating={book.rating}
+                      pages={book.pages}
+                      price={book.price}
+                      releaseYear={book.release_year}
+                      isCarousel={true}
+                    />
+                  ))}
             </Slider>
           </div>
         </section>
-
         {/* Recommended Books Section */}
         {user?.id && (
           <section className="mb-12">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">Recommended for You</h2>
+              <h2 className="text-xl font-semibold text-gray-900">
+                Recommended for You
+              </h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
               {loadingRecommended
-                ? Array(6).fill(null).map((_, index) => (
-                  <LoadingBookCard key={index} />
-                ))
+                ? Array(6)
+                    .fill(null)
+                    .map((_, index) => <LoadingBookCard key={index} />)
                 : recommendedBooks.map((book) => (
-                  <BookCard
-                    key={book.id}
-                    image={book.image_url}
-                    title={book.title}
-                    rating={book.rating}
-                    pages={book.pages}
-                    price={book.price}
-                    releaseYear={book.release_year}
-                  />
-                ))}
+                    <BookCard
+                      key={book.id}
+                      image={book.image_url}
+                      title={book.title}
+                      rating={book.rating}
+                      pages={book.pages}
+                      price={book.price}
+                      releaseYear={book.release_year}
+                    />
+                  ))}
             </div>
           </section>
         )}
