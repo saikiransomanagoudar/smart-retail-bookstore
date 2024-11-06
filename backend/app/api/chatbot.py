@@ -22,20 +22,8 @@ async def chat(request: Request):
 async def place_order(request: Request):
     data = await request.json()
     order_data = data.get("order_data")
-    user_details = data.get("user_details")
-
-    if not order_data or not user_details:
-        return JSONResponse(content={
-            "type": "error",
-            "response": "Invalid input format. Please provide both cart (`order_data`) and user details (`user_details`)."
-        }, status_code=400)
-
     try:
-        combined_data = {
-            "order_data": order_data,
-            "user_details": user_details
-        }
-        response = await chatbot_service.place_order(combined_data)
+        response = await chatbot_service.place_order(order_data)
         return JSONResponse(content=response)
     except Exception as e:
         return JSONResponse(content={

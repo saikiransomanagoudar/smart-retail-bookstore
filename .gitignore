@@ -3,4 +3,3 @@ __pycache__
 .env
 /backend/.env
 /frontend/node_modules
-node_modules/
