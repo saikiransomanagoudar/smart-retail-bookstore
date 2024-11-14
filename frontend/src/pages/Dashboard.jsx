@@ -5,6 +5,9 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Chatbot from "../components/Chatbot/Chatbot";
+import { setTrendingBooks, setRecommendedBooks } from "../Redux/booksSlice";
+import { useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 
 // Shimmer Animation CSS
 const shimmerAnimation = `
@@ -111,12 +114,14 @@ const BookCard = ({
 };
 
 const Dashboard = () => {
-  const [popularBooks, setPopularBooks] = useState([]);
-  const [recommendedBooks, setRecommendedBooks] = useState([]);
+  const dispatch = useDispatch();
+  // const [popularBooks, setPopularBooks] = useState([]);
+  // const [recommendedBooks, setRecommendedBooks] = useState([]);
   const [loadingPopular, setLoadingPopular] = useState(true);
   const [loadingRecommended, setLoadingRecommended] = useState(true);
   const { user } = useUser();
-
+  const popularBooks = useSelector((state) => state.books.trendingBooks);
+  const recommendedBooks = useSelector((state) => state.books.recommendedBooks);
   const carouselSettings = {
     dots: true,
     infinite: true,
@@ -168,13 +173,15 @@ const Dashboard = () => {
     const fetchPopularBooks = async () => {
       try {
         setLoadingPopular(true);
+
         const response = await axios.get(
           "http://localhost:8000/api/recommendations/trending-books",
           { signal: controller.signal }
         );
         if (isMounted) {
-          setPopularBooks(response.data);
-          localStorage.setItem("trendingBooks", JSON.stringify(response.data));
+          // setPopularBooks(response.data);
+          dispatch(setTrendingBooks(response.data));
+          // console.log(`trendingBooks`, response.data);
         }
       } catch (error) {
         if (error.name === "CanceledError") return;
@@ -201,7 +208,6 @@ const Dashboard = () => {
 
     const fetchRecommendedBooks = async () => {
       if (!user?.id) {
-        setRecommendedBooks([]);
         setLoadingRecommended(false);
 
         return;
@@ -209,6 +215,7 @@ const Dashboard = () => {
 
       try {
         setLoadingRecommended(true);
+
         const response = await axios.post(
           "http://localhost:8000/api/recommendations/initial-recommendations",
           { userId: user.id },
@@ -216,11 +223,9 @@ const Dashboard = () => {
         );
 
         if (isMounted) {
-          setRecommendedBooks(response.data || []);
-          localStorage.setItem(
-            "recommendedBooks",
-            JSON.stringify(response.data)
-          );
+          dispatch(setRecommendedBooks(response.data || []));
+
+          // console.log(`initial-recommendations`, response.data);
         }
       } catch (error) {
         if (error.name === "CanceledError") return;
