@@ -1,65 +1,154 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useUser, SignOutButton } from "@clerk/clerk-react";
-import { Search, ShoppingCart, Heart, Menu, X } from "lucide-react"; // Import icons
+import { Search, ShoppingCart, Heart, Menu, X } from "lucide-react";
+
+const SearchBar = ({
+  searchQuery,
+  handleSearchChange,
+  filteredBooks,
+  resetSearch,
+}) => (
+  <div className='relative w-full'>
+    <input
+      type='text'
+      placeholder='Search books...'
+      value={searchQuery}
+      onChange={handleSearchChange}
+      className='w-full px-4 py-2 text-gray-900 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
+    />
+    <Search className='absolute right-3 top-2.5 text-gray-500 w-5 h-5' />
+
+    {/* Search Results Dropdown */}
+    {filteredBooks.length > 0 && (
+      <div className='absolute z-10 mt-2 w-full bg-white rounded-lg shadow-lg max-h-48 overflow-y-auto'>
+        {filteredBooks.map((book, index) => (
+          <div key={index}>
+            <Link
+              to={`/book/${book.title}`} // Adjust this to actual book link if available
+              onClick={resetSearch} // Clear search query when a result is clicked
+              className='block px-4 py-2 hover:bg-blue-100'
+            >
+              <p className='text-gray-800 font-semibold'>{book.title}</p>
+              <p className='text-gray-600 text-sm'>Author: {book.author}</p>
+              <p className='text-gray-600 text-sm'>Language: {book.language}</p>
+              <p className='text-gray-600 text-sm'>Price: {book.price}</p>
+              <p className='text-gray-500 text-xs mt-1'>{book.desc}</p>
+            </Link>
+            {index < filteredBooks.length - 1 && (
+              <hr className='border-t border-gray-200 mx-4' /> // Line separator
+            )}
+          </div>
+        ))}
+      </div>
+    )}
+    {/* Edge case: No results */}
+    {searchQuery && filteredBooks.length === 0 && (
+      <div className='absolute z-10 mt-2 w-full bg-white rounded-lg shadow-lg p-4 text-gray-500'>
+        No books found
+      </div>
+    )}
+  </div>
+);
 
 const Navbar = () => {
   const { isSignedIn, user } = useUser();
   const [isNavOpen, setIsNavOpen] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredBooks, setFilteredBooks] = useState([]);
+  const [searchData, setSearchData] = useState([]);
 
   const links = [
     { title: "Home", link: "/", icon: null },
     { title: "Categories", link: "/categories", icon: null },
-    ...(isSignedIn ? [
-      { title: "Cart", link: "/cart", icon: <ShoppingCart className="w-5 h-5" /> },
-      { title: "Wishlist", link: "/wishlist", icon: <Heart className="w-5 h-5" /> }
-    ] : [])
+    ...(isSignedIn
+      ? [
+          {
+            title: "Cart",
+            link: "/cart",
+            icon: <ShoppingCart className='w-5 h-5' />,
+          },
+          {
+            title: "Wishlist",
+            link: "/wishlist",
+            icon: <Heart className='w-5 h-5' />,
+          },
+        ]
+      : []),
   ];
 
-  const SearchBar = () => (
-    <div className="relative">
-      <input
-        type="text"
-        placeholder="Search books..."
-        className="w-full px-4 py-2 text-gray-900 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
-      <Search className="absolute right-3 top-2.5 text-gray-500 w-5 h-5" />
-    </div>
-  );
+  // Retrieve books data from local storage on component mount
+  useEffect(() => {
+    const trendingBooks =
+      JSON.parse(localStorage.getItem("trendingBooks")) || [];
+    const recommendedBooks =
+      JSON.parse(localStorage.getItem("recommendedBooks")) || [];
+    setSearchData([...trendingBooks, ...recommendedBooks]);
+  }, []);
+
+  // Function to handle search input
+  const handleSearchChange = (event) => {
+    const query = event.target.value.toLowerCase();
+    setSearchQuery(query);
+
+    if (query.length > 0) {
+      const results = searchData.filter((book) =>
+        book.title.toLowerCase().includes(query)
+      );
+      setFilteredBooks(results);
+    } else {
+      setFilteredBooks([]);
+    }
+  };
+
+  // Function to reset search state
+  const resetSearch = () => {
+    setSearchQuery("");
+    setFilteredBooks([]);
+  };
 
   return (
-    <nav className="fixed w-full top-0 z-50 bg-zinc-900 shadow-lg">
+    <nav className='fixed w-full top-0 z-50 bg-zinc-900 shadow-lg'>
       {/* Main Navbar */}
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+      <div className='max-w-7xl mx-auto px-4'>
+        <div className='flex items-center justify-between h-16'>
           {/* Logo */}
-          <div className="flex-shrink-0">
-            <Link to="/" className="flex items-center space-x-3">
+          <div className='flex-shrink-0'>
+            <Link
+              to='/'
+              className='flex items-center space-x-3'
+              onClick={resetSearch}
+            >
               <img
-                src="https://cdn-icons-png.flaticon.com/128/10433/10433049.png"
-                alt="logo"
-                className="h-9 w-9"
+                src='https://cdn-icons-png.flaticon.com/128/10433/10433049.png'
+                alt='logo'
+                className='h-9 w-9'
               />
-              <span className="text-white font-bold text-xl">BookStore</span>
+              <span className='text-white font-bold text-xl'>BookStore</span>
             </Link>
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className='hidden md:flex items-center space-x-8'>
             {/* Search Bar */}
-            <div className="w-96">
-              <SearchBar />
+            <div className='w-96'>
+              <SearchBar
+                searchQuery={searchQuery}
+                handleSearchChange={handleSearchChange}
+                filteredBooks={filteredBooks}
+                resetSearch={resetSearch}
+              />
             </div>
 
             {/* Navigation Links */}
-            <div className="flex items-center space-x-6">
+            <div className='flex items-center space-x-6'>
               {links.map((item, i) => (
                 <Link
                   key={i}
                   to={item.link}
-                  className="flex items-center space-x-1 text-gray-300 hover:text-white transition-colors duration-200"
+                  className='flex items-center space-x-1 text-gray-300 hover:text-white transition-colors duration-200'
+                  onClick={resetSearch} // Clear search when navigating to a different page
                 >
                   {item.icon}
                   <span>{item.title}</span>
@@ -69,57 +158,75 @@ const Navbar = () => {
 
             {/* Auth Section */}
             {!isSignedIn ? (
-              <div className="flex items-center space-x-4">
+              <div className='flex items-center space-x-4'>
                 <Link
-                  to="/login"
-                  className="text-gray-300 hover:text-white transition-colors duration-200"
+                  to='/login'
+                  className='text-gray-300 hover:text-white transition-colors duration-200'
+                  onClick={resetSearch} // Clear search when navigating to login
                 >
                   Sign in
                 </Link>
                 <Link
-                  to="/signup"
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                  to='/signup'
+                  className='bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200'
+                  onClick={resetSearch} // Clear search when navigating to signup
                 >
                   Sign up
                 </Link>
               </div>
             ) : (
-              <div className="relative">
+              <div className='relative'>
                 <button
                   onClick={() => setShowDropdown(!showDropdown)}
-                  className="flex items-center space-x-2 focus:outline-none"
+                  className='flex items-center space-x-2 focus:outline-none'
                 >
                   <img
-                    src={user?.imageUrl || "https://cdn-icons-png.flaticon.com/128/149/149071.png"}
-                    alt="profile"
-                    className="h-8 w-8 rounded-full border-2 border-blue-500"
+                    src={
+                      user?.imageUrl ||
+                      "https://cdn-icons-png.flaticon.com/128/149/149071.png"
+                    }
+                    alt='profile'
+                    className='h-8 w-8 rounded-full border-2 border-blue-500'
                   />
-                  <span className="text-gray-300">{user?.firstName}</span>
+                  <span className='text-gray-300'>{user?.firstName}</span>
                 </button>
 
                 {/* Dropdown Menu */}
                 {showDropdown && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50">
-                    <div className="px-4 py-2 border-b">
-                      <p className="text-sm font-medium text-gray-900">{user?.fullName}</p>
-                      <p className="text-sm text-gray-500">{user?.primaryEmailAddress?.emailAddress}</p>
+                  <div className='absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50'>
+                    <div className='px-4 py-2 border-b'>
+                      <p className='text-sm font-medium text-gray-900'>
+                        {user?.fullName}
+                      </p>
+                      <p className='text-sm text-gray-500'>
+                        {user?.primaryEmailAddress?.emailAddress}
+                      </p>
                     </div>
                     <Link
-                      to="/profile"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => setShowDropdown(false)}
+                      to='/profile'
+                      className='block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'
+                      onClick={() => {
+                        setShowDropdown(false);
+                        resetSearch();
+                      }}
                     >
                       Profile Settings
                     </Link>
                     <Link
-                      to="/orders"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => setShowDropdown(false)}
+                      to='/orders'
+                      className='block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'
+                      onClick={() => {
+                        setShowDropdown(false);
+                        resetSearch();
+                      }}
                     >
                       My Orders
                     </Link>
                     <SignOutButton>
-                      <button className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                      <button
+                        onClick={resetSearch}
+                        className='block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100'
+                      >
                         Sign out
                       </button>
                     </SignOutButton>
@@ -132,52 +239,16 @@ const Navbar = () => {
           {/* Mobile menu button */}
           <button
             onClick={() => setIsNavOpen(!isNavOpen)}
-            className="md:hidden text-gray-300 hover:text-white"
+            className='md:hidden text-gray-300 hover:text-white'
           >
-            {isNavOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {isNavOpen ? (
+              <X className='h-6 w-6' />
+            ) : (
+              <Menu className='h-6 w-6' />
+            )}
           </button>
         </div>
       </div>
-
-      {/* Mobile Navigation Menu */}
-      {isNavOpen && (
-        <div className="md:hidden bg-zinc-800">
-          <div className="px-4 py-3">
-            <SearchBar />
-          </div>
-          <div className="px-2 pt-2 pb-3 space-y-1">
-            {links.map((item, i) => (
-              <Link
-                key={i}
-                to={item.link}
-                className="flex items-center space-x-2 text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium"
-                onClick={() => setIsNavOpen(false)}
-              >
-                {item.icon}
-                <span>{item.title}</span>
-              </Link>
-            ))}
-            {!isSignedIn && (
-              <div className="space-y-2 pt-4">
-                <Link
-                  to="/login"
-                  className="block w-full text-center text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium"
-                  onClick={() => setIsNavOpen(false)}
-                >
-                  Sign in
-                </Link>
-                <Link
-                  to="/signup"
-                  className="block w-full text-center bg-blue-600 text-white px-3 py-2 rounded-md text-base font-medium hover:bg-blue-700"
-                  onClick={() => setIsNavOpen(false)}
-                >
-                  Sign up
-                </Link>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </nav>
   );
 };
