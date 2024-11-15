@@ -1,55 +1,74 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useUser, SignOutButton } from "@clerk/clerk-react";
 import { Search, ShoppingCart, Heart, Menu, X } from "lucide-react";
+import { useSelector } from "react-redux";
 
 const SearchBar = ({
   searchQuery,
   handleSearchChange,
   filteredBooks,
   resetSearch,
-}) => (
-  <div className='relative w-full'>
-    <input
-      type='text'
-      placeholder='Search books...'
-      value={searchQuery}
-      onChange={handleSearchChange}
-      className='w-full px-4 py-2 text-gray-900 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
-    />
-    <Search className='absolute right-3 top-2.5 text-gray-500 w-5 h-5' />
+}) => {
+  const navigate = useNavigate();
 
-    {/* Search Results Dropdown */}
-    {filteredBooks.length > 0 && (
-      <div className='absolute z-10 mt-2 w-full bg-white rounded-lg shadow-lg max-h-48 overflow-y-auto'>
-        {filteredBooks.map((book, index) => (
-          <div key={index}>
-            <Link
-              to={`/book/${book.title}`} // Adjust this to actual book link if available
-              onClick={resetSearch} // Clear search query when a result is clicked
-              className='block px-4 py-2 hover:bg-blue-100'
+  const handleResultClick = (book) => {
+    resetSearch();
+    if (book.id) {
+      navigate(`/view-book-details/${book.id}`, { state: { book } });
+    } else {
+      navigate(`/view-book-details`, { state: { book } });
+    }
+  };
+
+  return (
+    <div className='relative w-full'>
+      <input
+        type='text'
+        placeholder='Search books...'
+        value={searchQuery}
+        onChange={handleSearchChange}
+        className='w-full px-4 py-2 text-gray-900 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'
+      />
+      <Search className='absolute right-3 top-2.5 text-gray-500 w-5 h-5' />
+
+      {/* Enhanced Search Results Dropdown */}
+      {filteredBooks.length > 0 && (
+        <div className='absolute z-10 mt-2 w-full bg-white rounded-lg shadow-lg max-h-60 overflow-y-auto p-2'>
+          {filteredBooks.map((book, index) => (
+            <div
+              key={index}
+              onClick={() => handleResultClick(book)}
+              className='flex flex-col items-start p-4 cursor-pointer rounded-lg hover:bg-blue-50 transition duration-150'
             >
-              <p className='text-gray-800 font-semibold'>{book.title}</p>
-              <p className='text-gray-600 text-sm'>Author: {book.author}</p>
-              <p className='text-gray-600 text-sm'>Language: {book.language}</p>
-              <p className='text-gray-600 text-sm'>Price: {book.price}</p>
-              <p className='text-gray-500 text-xs mt-1'>{book.desc}</p>
-            </Link>
-            {index < filteredBooks.length - 1 && (
-              <hr className='border-t border-gray-200 mx-4' /> // Line separator
-            )}
-          </div>
-        ))}
-      </div>
-    )}
-    {/* Edge case: No results */}
-    {searchQuery && filteredBooks.length === 0 && (
-      <div className='absolute z-10 mt-2 w-full bg-white rounded-lg shadow-lg p-4 text-gray-500'>
-        No books found
-      </div>
-    )}
-  </div>
-);
+              <p className='text-lg font-semibold text-gray-800'>
+                {book.title}
+              </p>
+              {/* {book.author && (
+                <p className='text-md text-gray-600'>Author: {book.author}</p>
+              )}
+              {book.language && (
+                <p className='text-sm text-gray-500'>
+                  Language: {book.language}
+                </p>
+              )} */}
+              {/* <p className='text-sm text-gray-500'>${book.price.toFixed(2)}</p> */}
+              {index < filteredBooks.length - 1 && (
+                <hr className='border-t border-gray-200 my-2 w-full' />
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+      {/* Edge case: No results */}
+      {searchQuery && filteredBooks.length === 0 && (
+        <div className='absolute z-10 mt-2 w-full bg-white rounded-lg shadow-lg p-4 text-gray-500'>
+          No books found
+        </div>
+      )}
+    </div>
+  );
+};
 
 const Navbar = () => {
   const { isSignedIn, user } = useUser();
@@ -57,8 +76,9 @@ const Navbar = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredBooks, setFilteredBooks] = useState([]);
-  const [searchData, setSearchData] = useState([]);
-
+  const trendingBooks = useSelector((state) => state.books.trendingBooks);
+  const recommendedBooks = useSelector((state) => state.books.recommendedBooks);
+  const searchData = [...trendingBooks, ...recommendedBooks];
   const links = [
     { title: "Home", link: "/", icon: null },
     { title: "Categories", link: "/categories", icon: null },
@@ -77,16 +97,6 @@ const Navbar = () => {
         ]
       : []),
   ];
-
-  // Retrieve books data from local storage on component mount
-  useEffect(() => {
-    const trendingBooks =
-      JSON.parse(localStorage.getItem("trendingBooks")) || [];
-    const recommendedBooks =
-      JSON.parse(localStorage.getItem("recommendedBooks")) || [];
-    setSearchData([...trendingBooks, ...recommendedBooks]);
-  }, []);
-
   // Function to handle search input
   const handleSearchChange = (event) => {
     const query = event.target.value.toLowerCase();
