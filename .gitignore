@@ -1,5 +1,7 @@
 __pycache__
 .idea
 .env
-/backend/.env
-/frontend/node_modules
+backend/.env
+frontend/.env.local
+frontend/node_modules
+node_modules/
