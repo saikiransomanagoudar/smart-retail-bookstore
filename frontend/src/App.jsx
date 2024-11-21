@@ -13,57 +13,57 @@ import Authors from "./pages/Authors";
 import Dashboard from "./pages/Dashboard";
 import Hero from "./components/Home/Home";
 import UserPreferences from "./components/Modals/UserPreferences";
+// Import the store
 
 const App = () => {
   const { user, isSignedIn } = useUser();
   const role = user?.publicMetadata?.role || "user";
 
   return (
-    <div className="">
+    <div className=''>
       <Navbar />
       <Routes>
         <Route
-          path="/"
-          element={!isSignedIn ? <Hero /> : <Navigate to="/dashboard" />}
+          path='/'
+          element={!isSignedIn ? <Hero /> : <Navigate to='/dashboard' />}
         />
 
         <Route
-          path="/login"
-          element={!isSignedIn ? <Login /> : <Navigate to="/dashboard" />}
+          path='/login'
+          element={!isSignedIn ? <Login /> : <Navigate to='/dashboard' />}
         />
-        <Route path="/signup" element={<Signup />} />
+        <Route path='/signup' element={<Signup />} />
 
-        <Route 
-          path="/preferences" element= {<UserPreferences />} />
+        <Route path='/preferences' element={<UserPreferences />} />
 
         <Route
-          path="/login/sso-callback"
-          element={!isSignedIn ? <Login /> : <Navigate to="/" />}
+          path='/login/sso-callback'
+          element={!isSignedIn ? <Login /> : <Navigate to='/' />}
         />
         <Route
-          path="/signup/sso-callback"
-          element={!isSignedIn ? <Signup /> : <Navigate to="/" />}
+          path='/signup/sso-callback'
+          element={!isSignedIn ? <Signup /> : <Navigate to='/' />}
         />
 
-        <Route 
-          path="/dashboard" 
-          element={isSignedIn ? <Dashboard /> : <Navigate to="/login" />} 
-        />
-        <Route path="/view-book-details/:id" element={<ViewBookDetails />} />
-        <Route path="/authors" element={<Authors />} />
         <Route
-          path="/cart"
-          element={isSignedIn ? <Cart /> : <Navigate to="/login" />}
+          path='/dashboard'
+          element={isSignedIn ? <Dashboard /> : <Navigate to='/login' />}
+        />
+        <Route path='/view-book-details/:id?' element={<ViewBookDetails />} />
+        <Route path='/authors' element={<Authors />} />
+        <Route
+          path='/cart'
+          element={isSignedIn ? <Cart /> : <Navigate to='/login' />}
         />
 
         {/* Profile Routes */}
         <Route
-          path="/profile"
-          element={isSignedIn ? <Profile /> : <Navigate to="/login" />}
+          path='/profile'
+          element={isSignedIn ? <Profile /> : <Navigate to='/login' />}
         >
           {role !== "admin" && <Route index element={<Favourite />} />}
-          <Route path="order-history" element={<OrderHistory />} />
-          <Route path="settings" element={<Settings />} />
+          <Route path='order-history' element={<OrderHistory />} />
+          <Route path='settings' element={<Settings />} />
         </Route>
       </Routes>
     </div>
