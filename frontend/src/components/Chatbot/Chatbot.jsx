@@ -1,7 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faRobot } from "@fortawesome/free-solid-svg-icons";
+import { useUser } from "@clerk/clerk-react";
 import axios from "axios";
+
+const { user } = useUser();
+const userId = user?.id;
 
 const BookCard = ({ book, onAddToCart }) => (
   <div className="flex bg-white rounded-lg shadow-md overflow-hidden mb-4 hover:shadow-lg transition-shadow duration-300">
@@ -222,10 +226,32 @@ const Cart = ({
 };
 
 const OrderConfirmationCard = ({ orderDetails }) => {
-  if (!orderDetails) return null;
+  console.log("Order Details:", orderDetails);
 
+  // Ensure orderDetails exists
+  if (!orderDetails) {
+    console.error("Order details are missing or undefined."); // Debugging for unexpected behavior
+    return (
+      <div className="text-red-600 text-center">
+        <p>Unable to load order details. Please try again later.</p>
+      </div>
+    );
+  }
+
+  // Helper function to safely format dates
+  const formatDate = (dateString) => {
+    try {
+      return new Date(dateString).toLocaleDateString();
+    } catch (error) {
+      console.error("Invalid date format:", dateString);
+      return "Invalid date";
+    }
+  };
+
+  // Render component
   return (
     <div className="bg-white rounded-lg shadow-md p-6 border border-green-100">
+      {/* Confirmation Header */}
       <div className="flex items-center justify-center mb-4">
         <div className="bg-green-100 rounded-full p-2">
           <svg
@@ -233,6 +259,7 @@ const OrderConfirmationCard = ({ orderDetails }) => {
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
           >
             <path
               strokeLinecap="round"
@@ -249,52 +276,74 @@ const OrderConfirmationCard = ({ orderDetails }) => {
       </h3>
 
       <div className="space-y-3">
-        <div className="flex justify-between items-center py-2 border-b border-gray-100">
-          <span className="text-sm text-gray-600">Order ID</span>
-          <span className="text-sm font-medium text-gray-800">
-            {orderDetails.order_id}
-          </span>
-        </div>
+        {orderDetails.order_id && (
+          <div className="flex justify-between items-center py-2 border-b border-gray-100">
+            <span className="text-sm text-gray-600">Order ID</span>
+            <span className="text-sm font-medium text-gray-800">
+              {orderDetails.order_id}
+            </span>
+          </div>
+        )}
 
-        <div className="flex justify-between items-center py-2 border-b border-gray-100">
-          <span className="text-sm text-gray-600">Total Cost</span>
-          <span className="text-sm font-medium text-green-600">
-            ${orderDetails.total_cost}
-          </span>
-        </div>
+        {orderDetails.total_cost && (
+          <div className="flex justify-between items-center py-2 border-b border-gray-100">
+            <span className="text-sm text-gray-600">Total Cost</span>
+            <span className="text-sm font-medium text-green-600">
+              ${parseFloat(orderDetails.total_cost).toFixed(2)}
+            </span>
+          </div>
+        )}
 
-        <div className="flex justify-between items-center py-2 border-b border-gray-100">
-          <span className="text-sm text-gray-600">Order Date</span>
-          <span className="text-sm font-medium text-gray-800">
-            {new Date(
-              orderDetails.order_placed_on.replace(" ", "T")
-            ).toLocaleDateString()}
-          </span>
-        </div>
+        {orderDetails.order_placed_on && (
+          <div className="flex justify-between items-center py-2 border-b border-gray-100">
+            <span className="text-sm text-gray-600">Order Date</span>
+            <span className="text-sm font-medium text-gray-800">
+              {formatDate(orderDetails.order_placed_on)}
+            </span>
+          </div>
+        )}
 
-        <div className="flex justify-between items-center py-2 border-b border-gray-100">
-          <span className="text-sm text-gray-600">Expected Delivery</span>
-          <span className="text-sm font-medium text-gray-800">
-            {new Date(orderDetails.expected_delivery).toLocaleDateString()}
-          </span>
-        </div>
+        {orderDetails.expected_delivery && (
+          <div className="flex justify-between items-center py-2 border-b border-gray-100">
+            <span className="text-sm text-gray-600">Expected Delivery</span>
+            <span className="text-sm font-medium text-gray-800">
+              {formatDate(orderDetails.expected_delivery)}
+            </span>
+          </div>
+        )}
 
-        <div className="flex justify-between items-center py-2 border-b border-gray-100">
-          <span className="text-sm text-gray-600">Status</span>
-          <span className="text-sm font-medium text-green-600">
-            {orderDetails.status === "success"
-              ? "Successful"
-              : orderDetails.status}
-          </span>
-        </div>
+        {orderDetails.status && (
+          <div className="flex justify-between items-center py-2 border-b border-gray-100">
+            <span className="text-sm text-gray-600">Status</span>
+            <span
+              className={`text-sm font-medium ${
+                orderDetails.status === "success"
+                  ? "text-green-600"
+                  : "text-red-600"
+              }`}
+            >
+              {orderDetails.status === "success"
+                ? "Successful"
+                : orderDetails.status}
+            </span>
+          </div>
+        )}
       </div>
 
+      {/* Order Message */}
       <div className="mt-4 pt-3 text-center">
-        <p className="text-sm text-gray-600">{orderDetails.message}</p>
+        {typeof orderDetails.message === "string" && orderDetails.message ? (
+          <p className="text-sm text-gray-600">{orderDetails.message}</p>
+        ) : (
+          <p className="text-sm text-red-600">
+            Something went wrong. Please try again.
+          </p>
+        )}
       </div>
     </div>
   );
 };
+
 
 const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -369,7 +418,10 @@ const Chatbot = () => {
     setIsOrderComplete(false);
     setShowUserForm(false);
     setTempMessage(null);
-    addMessage("Welcome! I'm BookWorm, your virtual assistant. I’m here to help you browse and find the perfect book for your collection. Ready to start exploring?", "bot");
+    addMessage(
+      "Welcome! I'm BookWorm, your virtual assistant. I’m here to help you browse and find the perfect book for your collection. Ready to start exploring?",
+      "bot"
+    );
   };
 
   const handleClose = async () => {
@@ -410,41 +462,52 @@ const Chatbot = () => {
     setShowUserForm(true);
   };
 
-  const handleOrderConfirmation = (orderDetails) => {
-    addMessage(orderDetails, "bot", "order_confirmation");
+  const handleOrderConfirmation = (orderResponse) => {
+    if (orderResponse.type === "order_confirmation" && orderResponse.response) {
+      const orderDetails = orderResponse.response;
+      addMessage(orderDetails, "bot", "order_confirmation");
+    } else {
+      console.error("Invalid order response:", orderResponse);
+      addMessage(
+        { message: "An error occurred while placing the order." },
+        "bot",
+        "error"
+      );
+    }
   };
 
   const handleFormSubmit = async (formData) => {
     setIsOrderProcessing(true);
     setShowUserForm(false);
-  
+
     try {
       const cartArray = Object.values(cart).map((item) => ({
         ...item.book,
         quantity: item.quantity,
       }));
-  
+
       const userDetails = {
+        user_id: userId,
         name: formData.name,
         address: formData.address,
         cardNumber: formData.cardNumber,
         expiryDate: formData.expiryDate,
         cvv: formData.cvv,
       };
-  
+
       const payload = {
         order_data: cartArray,
         user_details: userDetails,
       };
-  
+
       const response = await axios.post(
         "http://localhost:8000/api/chatbot/place-order",
         payload
       );
-  
+
       // Handle the response from the backend
       if (response?.data?.response) {
-        handleOrderConfirmation(response.data.response); 
+        handleOrderConfirmation(response.data.response);
         setCart({});
       } else {
         throw new Error("Invalid response format");
@@ -458,7 +521,7 @@ const Chatbot = () => {
     } finally {
       setIsOrderProcessing(false);
     }
-  };  
+  };
 
   useEffect(() => {
     if (isOpen && messages.length === 0) {
