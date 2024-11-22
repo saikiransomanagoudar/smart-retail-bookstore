@@ -6,8 +6,9 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Chatbot from "../components/Chatbot/Chatbot";
 import { setTrendingBooks, setRecommendedBooks } from "../Redux/booksSlice";
-import { useDispatch } from "react-redux";
 import { useSelector } from "react-redux";
+import { setPreferredGenres } from '../Redux/booksSlice'; // Import the action
+import { useDispatch } from 'react-redux';
 
 // Shimmer Animation CSS
 const shimmerAnimation = `
@@ -118,10 +119,18 @@ const Dashboard = () => {
   // const [popularBooks, setPopularBooks] = useState([]);
   // const [recommendedBooks, setRecommendedBooks] = useState([]);
   const [loadingPopular, setLoadingPopular] = useState(true);
+
+
+  const [loadingGeneres, setLoadingGeneres] = useState(true);
+
+
   const [loadingRecommended, setLoadingRecommended] = useState(true);
-  const { user } = useUser();
+  const { isSignedIn, user } = useUser();
   const popularBooks = useSelector((state) => state.books.trendingBooks);
   const recommendedBooks = useSelector((state) => state.books.recommendedBooks);
+
+  //const [preferredGenres, setPreferredGenres] = useState([]); // Dynamic genres
+
   const carouselSettings = {
     dots: true,
     infinite: true,
@@ -164,6 +173,82 @@ const Dashboard = () => {
       },
     ],
   };
+
+
+  // Fetch preferred genres when the component mounts
+  // useEffect(() => {
+  //   if (isSignedIn && user) {
+  //     fetchUserGenres();
+  //   }
+  // }, [isSignedIn, user]);
+
+  // const fetchUserGenres = async () => {
+  //   try {
+  //     const response = await axios.post(
+  //       `http://localhost:8000/api/recommendations/get-preferences`,
+  //       { userId: user.id }
+  //       //{ signal: controller.signal }
+  //     );
+
+  //     const data = await response.data;
+
+  //     console.log("Data is: ", data.preferred_genres)
+  //     setPreferredGenres(data.preferred_genres || []);
+  //   } catch (error) {
+  //     console.error("Error fetching preferred genres:", error);
+  //   }
+  // };
+
+
+  //------------------------------------------------------------------
+
+  useEffect(() => {
+    let isMounted = true;
+    const controller = new AbortController();
+
+    const fetchUserGenres = async () => {
+      try {
+        setLoadingGeneres(true);
+
+        const response = await axios.post(
+          `http://localhost:8000/api/recommendations/get-preferences`,
+          { userId: user.id }
+          //{ signal: controller.signal }
+        );
+
+        const data = await response.data;
+
+        const genres = [
+          "Fiction", "Mystery", "Thriller", "Romance", "Science Fiction",
+          "Fantasy", "Horror", "Historical Fiction", "Literary Fiction",
+          "Young Adult", "Children's", "Biography"
+        ];
+
+        if (isMounted) {
+          dispatch(setPreferredGenres(genres));
+        }
+      } catch (error) {
+        if (error.name === "CanceledError") return;
+        console.error("Error fetching user generes books:", error);
+      } finally {
+        if (isMounted) {
+          setLoadingGeneres(false);
+        }
+      }
+    };
+
+    fetchUserGenres();
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
+  }, []); // No dependencies as this should only run once
+
+
+
+
+  //-----------------------------------------------------------
 
   // Fetch popular books
   useEffect(() => {
