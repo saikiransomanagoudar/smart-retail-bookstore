@@ -1,3 +1,4 @@
+import axios from "axios";
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useUser, SignOutButton } from "@clerk/clerk-react";
@@ -76,9 +77,16 @@ const Navbar = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredBooks, setFilteredBooks] = useState([]);
+
+  // Inside the Navbar component:
+  const preferredGenres = useSelector((state) => state.books.preferredGenres);
+  const [showGenres, setShowGenres] = useState(false);
+
   const trendingBooks = useSelector((state) => state.books.trendingBooks);
   const recommendedBooks = useSelector((state) => state.books.recommendedBooks);
   const searchData = [...trendingBooks, ...recommendedBooks];
+
+
   const links = [
     { title: "Home", link: "/", icon: null },
     { title: "Categories", link: "/categories", icon: null },
@@ -97,6 +105,8 @@ const Navbar = () => {
         ]
       : []),
   ];
+
+
   // Function to handle search input
   const handleSearchChange = (event) => {
     const query = event.target.value.toLowerCase();
@@ -154,15 +164,47 @@ const Navbar = () => {
             {/* Navigation Links */}
             <div className='flex items-center space-x-6'>
               {links.map((item, i) => (
-                <Link
-                  key={i}
-                  to={item.link}
-                  className='flex items-center space-x-1 text-gray-300 hover:text-white transition-colors duration-200'
-                  onClick={resetSearch} // Clear search when navigating to a different page
-                >
+
+              <div
+              key={i}
+              className='relative group'
+              onMouseEnter={() => item.title === "Categories" && setShowGenres(true)}
+              onMouseLeave={() => item.title === "Categories" && setShowGenres(false)}
+              >
+
+                  
+                  <Link
+                    to={item.link}
+                    className='flex items-center space-x-1 text-gray-300 hover:text-white transition-colors duration-200'
+                    onClick={resetSearch}
+                  >
+                    
                   {item.icon}
                   <span>{item.title}</span>
                 </Link>
+
+                {item.title === "Categories" && showGenres && preferredGenres.length > 0 && (
+                    <div
+                    className="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50"
+                    role="menu"
+                    aria-label="Categories Menu"
+                  >
+                      {preferredGenres.map((genre, index) => (
+                        <Link
+                          key={index}
+                          to={`/categories/${genre.toLowerCase()}`}
+                          className='block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'
+                          onClick={() => {
+                            setShowGenres(false); // Close the dropdown after clicking
+                            console.log(`Navigated to ${genre}`);
+                          }}
+                        >
+                          {genre}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                  </div>
               ))}
             </div>
 
