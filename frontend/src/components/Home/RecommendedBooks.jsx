@@ -4,13 +4,17 @@ import axios from "axios";
 
 const RecommendedBooks = () => {
   const [Books, setBooks] = useState();
+  const { user } = useUser();
 
   useEffect(() => {
     const fetch = async () => {
-      const response = await axios.get(
-        "http://localhost:1000/api/v1/initial-recommendations"
+      const response = await axios.post(
+        "http://localhost:8000/api/recommendations/initial-recommendations",
+        {userId: user.id}
         // Replace with actual API for recommended books
       );
+
+      console.log("Response is:")
       setBooks(response.data.data);
     };
     fetch();
@@ -25,7 +29,7 @@ const RecommendedBooks = () => {
             {Books.map((items, i) => (
               <BookCard
                 bookid={items._id}
-                image={items.url}
+                image={items.image_url}
                 title={items.title}
                 author={items.author}
                 price={items.price}
