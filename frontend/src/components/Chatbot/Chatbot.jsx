@@ -296,6 +296,143 @@ const OrderConfirmationCard = ({ orderDetails }) => {
   );
 };
 
+const OrderListCard = ({ orders, onViewDetails }) => {
+  if (!orders || orders.length === 0) return null;
+
+  return (
+    <div className="w-full space-y-3">
+      {orders.map((order, index) => (
+        <div 
+          key={index} 
+          className="bg-white rounded-lg shadow-sm p-4 border border-gray-100 hover:shadow-md transition-shadow duration-200"
+        >
+          <div className="flex flex-col space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium text-gray-900">Order ID</span>
+              <span className="text-sm text-gray-600 font-mono">{order.order_id.slice(-8)}</span>
+            </div>
+            
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium text-gray-900">Ordered On</span>
+              <span className="text-sm text-gray-600">
+                {new Date(order.purchase_date.replace(' ', 'T')).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric'
+                })}
+              </span>
+            </div>
+            
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium text-gray-900">Delivery By</span>
+              <span className="text-sm text-gray-600">
+                {new Date(order.expected_delivery).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric'
+                })}
+              </span>
+            </div>
+
+            <button 
+              className="mt-2 w-full text-sm bg-blue-50 text-blue-600 py-2 px-4 rounded-md hover:bg-blue-100 transition-colors duration-200 flex items-center justify-center space-x-1"
+              onClick={() => onViewDetails(order.order_id)}
+            >
+              <span>View Details</span>
+              <svg 
+                className="w-4 h-4" 
+                fill="none" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth="2" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+              >
+                <path d="M9 5l7 7-7 7"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const OrderInfoCard = ({ orderInfo }) => {
+  if (!orderInfo) return null;
+
+  const formatDate = (dateString) => {
+    return new Date(dateString.replace(' ', 'T')).toLocaleDateString('en-US', {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  return (
+    <div className="bg-white rounded-lg shadow-md p-6 w-full">
+      <div className="border-l-4 border-blue-500 pl-4 mb-4">
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="text-lg font-semibold text-gray-800">Order Summary</h3>
+          <span className={`px-3 py-1 rounded-full text-sm ${
+            orderInfo.status === 'Delivered' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+          }`}>
+            {orderInfo.status}
+          </span>
+        </div>
+        <p className="text-sm text-gray-600">Order #{orderInfo.order_id.slice(-8)}</p>
+      </div>
+
+      <div className="space-y-4">
+        {/* Dates Section */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <p className="text-sm text-gray-600">Ordered On</p>
+            <p className="text-sm font-medium">{formatDate(orderInfo.order_placed_on)}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600">Expected Delivery</p>
+            <p className="text-sm font-medium">{formatDate(orderInfo.expected_delivery)}</p>
+          </div>
+        </div>
+
+        {/* Items Section */}
+        <div className="border-t border-b border-gray-100 py-4">
+          <p className="text-sm font-medium text-gray-700 mb-2">Items</p>
+          {orderInfo.items.map((item, index) => (
+            <div key={index} className="flex justify-between items-center py-2">
+              <div className="flex-1">
+                <p className="text-sm font-medium">{item.title}</p>
+                <p className="text-xs text-gray-600">Qty: {item.quantity}</p>
+              </div>
+              <p className="text-sm font-medium">${item.subtotal.toFixed(2)}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Total and Address Section */}
+        <div className="space-y-3">
+          <div className="flex justify-between items-center font-medium">
+            <span className="text-gray-700">Total Amount</span>
+            <span className="text-lg text-blue-600">${orderInfo.total_cost}</span>
+          </div>
+
+          {orderInfo.shipping_address && (
+            <div className="pt-3 border-t border-gray-100">
+              <p className="text-sm font-medium text-gray-700 mb-1">Delivery Address</p>
+              <p className="text-sm text-gray-600">
+                {orderInfo.shipping_address.street},<br />
+                {orderInfo.shipping_address.city}, {orderInfo.shipping_address.state} {orderInfo.shipping_address.zip_code}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
@@ -307,6 +444,39 @@ const Chatbot = () => {
   const [showUserForm, setShowUserForm] = useState(false);
   const [tempMessage, setTempMessage] = useState(null);
   const messagesEndRef = useRef(null);
+
+
+  const handleViewOrderDetails = async (orderId) => {
+    setIsLoading(true);
+    try {
+      const response = await axios.post(
+        "http://localhost:8000/api/chatbot/chat",
+        { 
+          message: `view order details ${orderId}`,
+          metadata: {
+            type: "order_info", // Changed from order_details to order_info
+            order_id: orderId
+          }
+        }
+      );
+      const data = response.data;
+      
+      if (data.type === "order_info") { // Changed this check to order_info
+        addMessage("Here are the details for your order:", "bot");
+        addMessage(data.response, "bot", "order_info"); // Changed from order_confirmation to order_info
+      } else {
+        addMessage("Sorry, I couldn't find the details for this order.", "bot");
+      }
+    } catch (error) {
+      console.error("Error fetching order details:", error);
+      addMessage(
+        "I'm sorry, I couldn't fetch the order details at this moment. Please try again later.",
+        "bot"
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const sendMessage = async (message) => {
     setIsLoading(true);
@@ -321,7 +491,7 @@ const Chatbot = () => {
         return;
       }
 
-      if (data.type === "greeting") {
+      if (data.type === "greeting" || data.type === "clarification") {
         addMessage(data.response, "bot");
       } else if (data.type === "question" || data.type === "order_question") {
         addMessage(data.response, "bot");
@@ -340,6 +510,18 @@ const Chatbot = () => {
         setIsOrderProcessing(false);
         setCart({});
         setIsOrderComplete(true);
+      }else if(data.type === "order_list"){
+        if (data.response && data.response.length > 0) {
+          addMessage("Here are your recent orders:", "bot");
+          addMessage(data.response, "bot", "order_list");
+          addMessage("You can view the details of any order or ask me something else.", "bot");
+        } else {
+          addMessage("You don't have any orders yet. Would you like to browse some books?", "bot");
+        }
+      }
+      else if(data.type === "order_info") {
+        addMessage("Here's the current status of your order:", "bot");
+        addMessage(data.response, "bot", "order_info");
       }
     } catch (error) {
       console.error("Error communicating with chatbot:", error);
@@ -577,6 +759,13 @@ const Chatbot = () => {
                     </div>
                   ) : msg.type === "order_confirmation" ? (
                     <OrderConfirmationCard orderDetails={msg.content} />
+                  ) : msg.type === "order_list" ? (
+                    <OrderListCard 
+                      orders={msg.content} 
+                      onViewDetails={handleViewOrderDetails}
+                    />
+                  ) : msg.type === "order_info" ? (
+                    <OrderInfoCard orderInfo={msg.content} />
                   ) : (
                     <p className="text-sm">{msg.content}</p>
                   )}

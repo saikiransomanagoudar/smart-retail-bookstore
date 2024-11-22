@@ -1,18 +1,22 @@
-from typing import Tuple
+from typing import Dict, List, Any, Tuple
+from langchain_core.agents import AgentAction, AgentFinish
+from langchain.agents import AgentExecutor
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import RunnablePassthrough
+from langgraph.graph import StateGraph, END
+from sqlalchemy import select
+from backend.app.database.database import SessionLocal
+from backend.app.models.orders import Order
 from langchain_openai import ChatOpenAI
 from langchain.memory import ConversationBufferMemory
-from langchain.prompts import ChatPromptTemplate
-from langchain.schema.runnable import RunnablePassthrough
-from langchain.schema.output_parser import StrOutputParser
 
-from backend.app.models.orders import Order
-from backend.app.services.graphql_service import graphql_service
-
-from typing import List, Dict, Any
 from datetime import datetime, timedelta
 import logging
 import re
 import json
+
+from backend.app.services.graphql_service import graphql_service
 
 logging.basicConfig(level=logging.INFO)
 
@@ -131,14 +135,6 @@ class RecommendationAgent:
             self.question_count += 1
 
         return {"type": "question", "response": response}
-
-    def is_out_of_context(self, user_input: str) -> bool:
-        """Determine if the user's question is out of context."""
-        out_of_context_keywords = [
-            "weather", "news", "joke", "recipe", "food", "sports", "politics", 
-            "movies", "games", "unrelated topic", "non-book related"
-        ]
-        return any(keyword in user_input.lower() for keyword in out_of_context_keywords)
 
     def check_readiness(self, response: str) -> bool:
         """
@@ -394,37 +390,146 @@ class OrderPlacementAgent:
         self.cart_items = []
 
 
+class OrderQueryAgent:
+    def __init__(self, llm):
+        self.llm = llm
+        self.state = "INIT"
+        self.user_id = None
+
+    async def process_query(self, user_input: str, user_id: int) -> Dict[str, Any]:
+        """Process user queries about orders"""
+        self.user_id = user_id
+
+        # Check if metadata is present in the input (for direct order detail requests)
+        if isinstance(user_input, dict) and user_input.get('metadata', {}).get('type') == 'order_details':
+            order_id = user_input['metadata'].get('order_id')
+            if order_id:
+                order_details = Order.get_order_details(order_id, user_id)
+                if order_details:
+                    # Format the order details to match the OrderInfoCard expectations
+                    formatted_details = {
+                        "order_id": order_details["order_id"],
+                        "total_cost": str(sum(item["subtotal"] for item in order_details["items"])),
+                        "order_placed_on": order_details["purchase_date"],
+                        "expected_delivery": order_details["expected_delivery"],
+                        "status": "Delivered" if datetime.now() > datetime.strptime(order_details["expected_delivery"],
+                                                                                    "%Y-%m-%d") else "In Transit",
+                        "message": f"Order details retrieved successfully.",
+                        "shipping_address": order_details["shipping_address"],
+                        "items": order_details["items"]
+                    }
+                    return {
+                        "type": "order_info",  # Changed this from order_details to order_info
+                        "response": formatted_details
+                    }
+                return {
+                    "type": "error",
+                    "response": "Order not found or unauthorized access."
+                }
+
+        # Handle text-based queries
+        if isinstance(user_input, str):
+            # Check if input contains an order ID
+            if "order" in user_input.lower() and any(char.isdigit() for char in user_input):
+                order_id = self.extract_order_id(user_input)
+                if order_id:
+                    order_details = Order.get_order_details(order_id, user_id)
+                    if order_details:
+                        formatted_details = {
+                            "order_id": order_details["order_id"],
+                            "total_cost": str(sum(item["subtotal"] for item in order_details["items"])),
+                            "order_placed_on": order_details["purchase_date"],
+                            "expected_delivery": order_details["expected_delivery"],
+                            "status": "Delivered" if datetime.now() > datetime.strptime(
+                                order_details["expected_delivery"], "%Y-%m-%d") else "In Transit",
+                            "message": f"Order details retrieved successfully.",
+                            "shipping_address": order_details["shipping_address"],
+                            "items": order_details["items"]
+                        }
+                        return {
+                            "type": "order_info",  # Changed this from order_details to order_info
+                            "response": formatted_details
+                        }
+                    return {
+                        "type": "error",
+                        "response": "Order not found or unauthorized access."
+                    }
+
+            # If user asks about order history
+            if any(keyword in user_input.lower() for keyword in ["orders", "history", "purchases"]):
+                orders = Order.get_user_orders(user_id)
+                if orders:
+                    return {
+                        "type": "order_list",
+                        "response": orders
+                    }
+                return {
+                    "type": "error",
+                    "response": "No orders found."
+                }
+
+        return {
+            "type": "clarification",
+            "response": "Would you like to see your order history or check a specific order? Please provide more details."
+        }
+
+    def extract_order_id(self, text: str) -> str:
+        """Extract order ID from user input"""
+        import re
+        # Look for UUID pattern
+        uuid_pattern = r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+        uuid_match = re.search(uuid_pattern, text, re.IGNORECASE)
+        if uuid_match:
+            return uuid_match.group(0)
+        return None
+
 class ChatbotService:
     def __init__(self):
         self.llm = ChatOpenAI(temperature=0.7, model_name="gpt-4o-mini")
         self.memory = ConversationBufferMemory(return_messages=True)
         self.recommendation_agent = RecommendationAgent(self.llm, self.memory)
         self.order_placement_agent = OrderPlacementAgent(self.llm)
+        self.order_query_agent = OrderQueryAgent(self.llm)
         self.current_agent = "recommendation"
-        self.greeting_message = "Welcome! I'm BookWorm, your virtual assistant. I’m here to help you browse and find the perfect book for your collection. Ready to start exploring?"
+        self.greeting_message = "Welcome! I'm BookWorm, your virtual assistant. I'm here to help you browse and find the perfect book for your collection. Ready to start exploring?"
         self.first_interaction = True
-    async def chat(self, user_input: str):
-        if user_input.lower() == "clear":
-            self.reset_first_interaction()
-            self.memory.clear()  # Clear all chat memory
-            return {"type": "system", "response": "Chat reset. How can I assist you with books today?"}
-    
-    async def chat(self, user_input: str):
-        if self.first_interaction:
+
+    async def chat(self, user_input: dict):
+        # Handle different types of input (string or dict with metadata)
+        input_message = user_input.get('message') if isinstance(user_input, dict) else user_input
+        metadata = user_input.get('metadata') if isinstance(user_input, dict) else None
+
+        if self.first_interaction and not metadata:
             self.first_interaction = False
             return {"type": "greeting", "response": self.greeting_message}
 
-        if user_input.lower() == "hi" and not self.first_interaction:
-            return {
-                "type": "question",
-                "response": "What genres or themes do you typically enjoy reading?",
-            }
+        if isinstance(input_message, str):
+            if input_message.lower() == "clear":
+                self.reset_first_interaction()
+                self.memory.clear()
+                return {"type": "system", "response": "How can I assist you with books today?"}
+
+            if input_message.lower() == "hi" and not self.first_interaction:
+                return {
+                    "type": "question",
+                    "response": "What genres or themes do you typically enjoy reading?",
+                }
+
+        # Detect if the query is order-related
+        order_keywords = ["order", "purchase", "bought", "delivery", "shipping", "track"]
+        if ((isinstance(input_message, str) and any(keyword in input_message.lower() for keyword in order_keywords))
+            or (metadata and metadata.get('type') == 'order_info')):
+            if not 1:  # Replace with actual user authentication check
+                return {
+                    "type": "error",
+                    "response": "Please log in to view your orders."
+                }
+            return await self.order_query_agent.process_query(user_input, 1)  # Pass the entire input to handle metadata
 
         if self.current_agent == "recommendation":
             if not self.memory.chat_memory.messages:
                 self.memory.chat_memory.add_ai_message(self.greeting_message)
-
-            response = await self.recommendation_agent.chat(user_input)
+            response = await self.recommendation_agent.chat(input_message)
             return response
         elif self.current_agent == "order_placement":
             response = await self.order_placement_agent.process_order(user_input)
