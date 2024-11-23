@@ -246,30 +246,27 @@ const Dashboard = () => {
   }, [user?.id]);
 
   return (
-    <div className='min-h-screen bg-gray-50'>
+    <div className="min-h-screen bg-gray-50">
       <style>{shimmerAnimation}</style>
-
+  
       {/* Main Content */}
-      <main className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Popular Books Section */}
-        <section className='mb-12' style={{ paddingTop: "3rem" }}>
-          {" "}
-          <div className='flex items-center justify-between mb-6'>
-            <h2 className='text-xl font-semibold text-gray-900'>
-              Popular Books
-            </h2>
+        <section className="mb-12" style={{ paddingTop: "3rem" }}>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-gray-900">Popular Books</h2>
           </div>
-          <div className='relative'>
+          <div className="relative">
             <Slider {...carouselSettings}>
               {loadingPopular
                 ? Array(6)
                     .fill(null)
                     .map((_, index) => (
-                      <LoadingBookCard key={index} isCarousel={true} />
+                      <LoadingBookCard key={`loading-popular-${index}`} isCarousel={true} />
                     ))
-                : popularBooks.map((book) => (
+                : popularBooks.map((book, index) => (
                     <BookCard
-                      key={book.id}
+                      key={book.id || `popular-${index}`}
                       image={book.image_url}
                       title={book.title}
                       rating={book.rating}
@@ -282,22 +279,23 @@ const Dashboard = () => {
             </Slider>
           </div>
         </section>
+  
         {/* Recommended Books Section */}
         {user?.id && (
-          <section className='mb-12'>
-            <div className='flex items-center justify-between mb-6'>
-              <h2 className='text-xl font-semibold text-gray-900'>
-                Recommended for You
-              </h2>
+          <section className="mb-12">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-gray-900">Recommended for You</h2>
             </div>
-            <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6'>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
               {loadingRecommended
                 ? Array(6)
                     .fill(null)
-                    .map((_, index) => <LoadingBookCard key={index} />)
-                : recommendedBooks.map((book) => (
+                    .map((_, index) => (
+                      <LoadingBookCard key={`loading-recommended-${index}`} />
+                    ))
+                : recommendedBooks.map((book, index) => (
                     <BookCard
-                      key={book.id}
+                      key={book.id || `recommended-${index}`}
                       image={book.image_url}
                       title={book.title}
                       rating={book.rating}
@@ -312,7 +310,7 @@ const Dashboard = () => {
       </main>
       <Chatbot />
     </div>
-  );
+  );  
 };
 
 export default Dashboard;
