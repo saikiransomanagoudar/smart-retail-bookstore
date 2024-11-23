@@ -8,9 +8,8 @@ import uuid
 class Order(Base):
     __tablename__ = "orders"
 
-    id = Column(Integer, primary_key=True, index=True)
-    order_id = Column(String, index=True)  # Added to group items from same order
-    user_id = Column(Integer)
+    order_id = Column(String, primary_key=True, index=True)  # Added to group items from same order
+    user_id = Column(String, ForeignKey('user_preferences.user_id'))
     title = Column(String)
     price = Column(Float)
     total_quantity = Column(Integer, default=1)
