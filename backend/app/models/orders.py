@@ -31,37 +31,33 @@ class Order(Base):
     expected_shipping_date = Column(DateTime)
 
     @classmethod
-    def get_user_orders(cls, user_id: int) -> List[Dict[str, Any]]:
+    def get_user_orders(cls, user_id: str) -> List[Dict[str, Any]]:
         """Get 3 most recent orders for a specific user"""
+        assert isinstance(user_id, str), f"user_id must be a string, got {type(user_id)}"
         db = SessionLocal()
         try:
-            # Query to get the 3 latest unique orders by purchase date
+            logging.info(f"Fetching orders for user_id: {user_id}")
             stmt = (
                 select(
                     cls.order_id,
                     cls.purchase_date,
                     cls.expected_shipping_date
                 )
-                .where(cls.user_id == user_id)
-                .group_by(cls.order_id, cls.purchase_date, cls.expected_shipping_date)
+                .where(cls.user_id == user_id)  # Ensure user_id is treated as a string
                 .order_by(cls.purchase_date.desc())
-                .limit(3)  # Limit to 3 most recent orders
+                .limit(3)
             )
-
+            logging.info(f"Generated SQL query: {stmt}")
             result = db.execute(stmt)
-            orders = []
-
-            for row in result.mappings():
-                try:
-                    orders.append({
-                        "order_id": row['order_id'],
-                        "purchase_date": row['purchase_date'].strftime("%Y-%m-%d %H:%M:%S"),
-                        "expected_delivery": row['expected_shipping_date'].strftime("%Y-%m-%d")
-                    })
-                except Exception as e:
-                    logging.error(f"Error processing order row: {str(e)}")
-                    continue
-
+            orders = [
+                {
+                    "order_id": row["order_id"],
+                    "purchase_date": row["purchase_date"].strftime("%Y-%m-%d %H:%M:%S"),
+                    "expected_delivery": row["expected_shipping_date"].strftime("%Y-%m-%d"),
+                }
+                for row in result.mappings()
+            ]
+            logging.info(f"Orders fetched: {orders}")
             return orders
         except Exception as e:
             logging.error(f"Error fetching user orders: {str(e)}")
@@ -70,7 +66,7 @@ class Order(Base):
             db.close()
 
     @classmethod
-    def get_order_details(cls, order_id: str, user_id: int) -> Optional[Dict[str, Any]]:
+    def get_order_details(cls, order_id: str, user_id: str) -> Optional[Dict[str, Any]]:
         """Get detailed information for a specific order"""
         db = SessionLocal()
         try:
