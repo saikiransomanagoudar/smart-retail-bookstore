@@ -1,21 +1,20 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faRobot } from "@fortawesome/free-solid-svg-icons";
+import { useUser } from "@clerk/clerk-react";
 import axios from "axios";
 
 const BookCard = ({ book, onAddToCart }) => (
   <div className="flex bg-white rounded-lg shadow-md overflow-hidden mb-4 hover:shadow-lg transition-shadow duration-300">
     <img
-      src={
-        book.image_url || "https://via.placeholder.com/100x150?text=No+Image"
-      }
-      alt={book.title}
+      src={book.image_url || "https://via.placeholder.com/100x150?text=No+Image"}
+      alt={book.title || "Book"}
       className="w-20 h-30 object-cover"
     />
     <div className="p-3 flex-1 flex flex-col justify-between">
       <div>
         <h4 className="text-sm font-semibold mb-1 text-gray-800">
-          {book.title}
+          {book.title || "Untitled"}
         </h4>
         <p className="text-xs text-gray-600 mb-1">
           Pages: {book.pages || "N/A"}
@@ -26,7 +25,9 @@ const BookCard = ({ book, onAddToCart }) => (
         <p className="text-xs text-gray-600 mb-1">
           Price: ${book.Price || "N/A"}
         </p>
-        <p className="text-xs text-gray-700">{book.ReasonForRecommendation}</p>
+        <p className="text-xs text-gray-700">
+          {book.ReasonForRecommendation || "No recommendation reason provided."}
+        </p>
       </div>
       <button
         className="mt-2 bg-green-500 text-white text-xs py-1 px-2 rounded hover:bg-green-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
@@ -41,7 +42,12 @@ const BookCard = ({ book, onAddToCart }) => (
 const UserForm = ({ onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
     name: "",
-    address: "",
+    address: {
+      street: "",
+      city: "",
+      state: "",
+      zip_code: "",
+    },
     cardNumber: "",
     expiryDate: "",
     cvv: "",
@@ -49,14 +55,34 @@ const UserForm = ({ onSubmit, onCancel }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    if (["street", "city", "state", "zip_code"].includes(name)) {
+      setFormData((prev) => ({
+        ...prev,
+        address: {
+          ...prev.address,
+          [name]: value,
+        },
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     const { name, address, cardNumber, expiryDate, cvv } = formData;
 
-    if (!name || !address || !cardNumber || !expiryDate || !cvv) {
+    if (
+      !name ||
+      !address.street ||
+      !address.city ||
+      !address.state ||
+      !address.zip_code ||
+      !cardNumber ||
+      !expiryDate ||
+      !cvv
+    ) {
       alert("Please fill out all fields");
       return;
     }
@@ -79,12 +105,34 @@ const UserForm = ({ onSubmit, onCancel }) => {
       </div>
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700">
-          Shipping Address
+          Street
         </label>
         <input
           type="text"
-          name="address"
-          value={formData.address}
+          name="street"
+          value={formData.address.street}
+          onChange={handleChange}
+          className="mt-1 p-2 border border-gray-300 rounded w-full"
+          required
+        />
+      </div>
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700">City</label>
+        <input
+          type="text"
+          name="city"
+          value={formData.address.city}
+          onChange={handleChange}
+          className="mt-1 p-2 border border-gray-300 rounded w-full"
+          required
+        />
+      </div>
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700">State</label>
+        <input
+          type="text"
+          name="state"
+          value={formData.address.state}
           onChange={handleChange}
           className="mt-1 p-2 border border-gray-300 rounded w-full"
           required
@@ -92,7 +140,20 @@ const UserForm = ({ onSubmit, onCancel }) => {
       </div>
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700">
-          Card Number (16 digits)
+          Zip Code
+        </label>
+        <input
+          type="text"
+          name="zip_code"
+          value={formData.address.zip_code}
+          onChange={handleChange}
+          className="mt-1 p-2 border border-gray-300 rounded w-full"
+          required
+        />
+      </div>
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700">
+          Card Number
         </label>
         <input
           type="text"
@@ -102,8 +163,6 @@ const UserForm = ({ onSubmit, onCancel }) => {
           className="mt-1 p-2 border border-gray-300 rounded w-full"
           required
           maxLength="16"
-          pattern="\d{16}"
-          title="Card number must be 16 digits"
         />
       </div>
       <div className="mb-4">
@@ -117,8 +176,6 @@ const UserForm = ({ onSubmit, onCancel }) => {
           onChange={handleChange}
           className="mt-1 p-2 border border-gray-300 rounded w-full"
           required
-          pattern="\d{2}/\d{2}"
-          title="Expiry date must be in MM/YY format"
         />
       </div>
       <div className="mb-4">
@@ -131,8 +188,6 @@ const UserForm = ({ onSubmit, onCancel }) => {
           className="mt-1 p-2 border border-gray-300 rounded w-full"
           required
           maxLength="3"
-          pattern="\d{3}" // Ensures only 3 digits
-          title="CVV must be 3 digits"
         />
       </div>
       <div className="flex justify-end">
@@ -222,7 +277,24 @@ const Cart = ({
 };
 
 const OrderConfirmationCard = ({ orderDetails }) => {
-  if (!orderDetails) return null;
+  console.log("Received orderDetails: ", orderDetails);
+  if (!orderDetails || typeof orderDetails !== "object") {
+    console.error("Invalid orderDetails:", orderDetails);
+    return (
+      <div className="text-red-600 text-center">
+        <p>Unable to load order details. Please try again later.</p>
+      </div>
+    );
+  }
+
+  const formatDate = (dateString) => {
+    try {
+      const isoDateString = dateString.replace(' ', 'T');
+      return new Date(isoDateString).toLocaleDateString();
+    } catch {
+      return "Invalid date";
+    }
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6 border border-green-100">
@@ -233,6 +305,7 @@ const OrderConfirmationCard = ({ orderDetails }) => {
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
           >
             <path
               strokeLinecap="round"
@@ -243,54 +316,73 @@ const OrderConfirmationCard = ({ orderDetails }) => {
           </svg>
         </div>
       </div>
-
       <h3 className="text-lg font-semibold text-center text-gray-800 mb-4">
         Order Confirmed!
       </h3>
 
       <div className="space-y-3">
-        <div className="flex justify-between items-center py-2 border-b border-gray-100">
-          <span className="text-sm text-gray-600">Order ID</span>
-          <span className="text-sm font-medium text-gray-800">
-            {orderDetails.order_id}
-          </span>
-        </div>
+        {orderDetails.order_id && (
+          <div className="flex justify-between items-center py-2 border-b border-gray-100">
+            <span className="text-sm text-gray-600">Order ID</span>
+            <span className="text-sm font-medium text-gray-800">
+              {orderDetails.order_id}
+            </span>
+          </div>
+        )}
 
-        <div className="flex justify-between items-center py-2 border-b border-gray-100">
-          <span className="text-sm text-gray-600">Total Cost</span>
-          <span className="text-sm font-medium text-green-600">
-            ${orderDetails.total_cost}
-          </span>
-        </div>
+        {orderDetails.total_cost && (
+          <div className="flex justify-between items-center py-2 border-b border-gray-100">
+            <span className="text-sm text-gray-600">Total Cost</span>
+            <span className="text-sm font-medium text-green-600">
+              ${parseFloat(orderDetails.total_cost).toFixed(2)}
+            </span>
+          </div>
+        )}
 
-        <div className="flex justify-between items-center py-2 border-b border-gray-100">
-          <span className="text-sm text-gray-600">Order Date</span>
-          <span className="text-sm font-medium text-gray-800">
-            {new Date(
-              orderDetails.order_placed_on.replace(" ", "T")
-            ).toLocaleDateString()}
-          </span>
-        </div>
+        {orderDetails.order_placed_on && (
+          <div className="flex justify-between items-center py-2 border-b border-gray-100">
+            <span className="text-sm text-gray-600">Order Date</span>
+            <span className="text-sm font-medium text-gray-800">
+              {formatDate(orderDetails.order_placed_on)}
+            </span>
+          </div>
+        )}
 
-        <div className="flex justify-between items-center py-2 border-b border-gray-100">
-          <span className="text-sm text-gray-600">Expected Delivery</span>
-          <span className="text-sm font-medium text-gray-800">
-            {new Date(orderDetails.expected_delivery).toLocaleDateString()}
-          </span>
-        </div>
+        {orderDetails.expected_delivery && (
+          <div className="flex justify-between items-center py-2 border-b border-gray-100">
+            <span className="text-sm text-gray-600">Expected Delivery</span>
+            <span className="text-sm font-medium text-gray-800">
+              {formatDate(orderDetails.expected_delivery)}
+            </span>
+          </div>
+        )}
 
-        <div className="flex justify-between items-center py-2 border-b border-gray-100">
-          <span className="text-sm text-gray-600">Status</span>
-          <span className="text-sm font-medium text-green-600">
-            {orderDetails.status === "success"
-              ? "Successful"
-              : orderDetails.status}
-          </span>
-        </div>
+        {orderDetails.status && (
+          <div className="flex justify-between items-center py-2 border-b border-gray-100">
+            <span className="text-sm text-gray-600">Status</span>
+            <span
+              className={`text-sm font-medium ${
+                orderDetails.status === "success"
+                  ? "text-green-600"
+                  : "text-red-600"
+              }`}
+            >
+              {orderDetails.status === "success"
+                ? "Successful"
+                : orderDetails.status}
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="mt-4 pt-3 text-center">
-        <p className="text-sm text-gray-600">{orderDetails.message}</p>
+        {typeof orderDetails.message === "string" && orderDetails.message ? (
+          <p className="text-sm text-gray-600">{orderDetails.message}</p>
+        ) : (
+          <p className="text-sm text-red-600">
+            Something went wrong. Please try again.
+          </p>
+        )}
       </div>
     </div>
   );
@@ -434,6 +526,8 @@ const OrderInfoCard = ({ orderInfo }) => {
 };
 
 const Chatbot = () => {
+  const { user } = useUser();
+  const userId = user?.id;
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -490,17 +584,29 @@ const Chatbot = () => {
       if (message.toLowerCase() === "quit") {
         return;
       }
-
+      
       if (data.type === "greeting" || data.type === "clarification") {
         addMessage(data.response, "bot");
       } else if (data.type === "question" || data.type === "order_question") {
         addMessage(data.response, "bot");
       } else if (data.type === "recommendation") {
+        const recommendations = data.response.map((book) => ({
+          title: book.title || "Untitled",
+          pages: book.pages || "N/A",
+          release_year: book.release_year || "N/A",
+          Price: book.Price || "N/A",
+          ReasonForRecommendation:
+            book.ReasonForRecommendation || "No recommendation reason provided.",
+          image_url:
+            book.image_url ||
+            "https://via.placeholder.com/100x150?text=No+Image",
+        }));
+
         addMessage(
           "Based on our conversation, here are some book recommendations for you:",
           "bot"
         );
-        addMessage(data.response, "bot", "recommendations");
+        addMessage(recommendations, "bot", "recommendations");
         addMessage(
           "Would you like more recommendations or have any other questions?",
           "bot"
@@ -510,6 +616,7 @@ const Chatbot = () => {
         setIsOrderProcessing(false);
         setCart({});
         setIsOrderComplete(true);
+
       }else if(data.type === "order_list"){
         if (data.response && data.response.length > 0) {
           addMessage("Here are your recent orders:", "bot");
@@ -522,6 +629,9 @@ const Chatbot = () => {
       else if(data.type === "order_info") {
         addMessage("Here's the current status of your order:", "bot");
         addMessage(data.response, "bot", "order_info");
+
+      } else {
+        addMessage(data.response, "bot");
       }
     } catch (error) {
       console.error("Error communicating with chatbot:", error);
@@ -535,32 +645,20 @@ const Chatbot = () => {
   };
 
   const addMessage = useCallback((content, sender, type = "text") => {
-    setMessages((prev) => [...prev, { content, sender, type }]);
+    if (type === "order_confirmation" || type === "recommendations") {
+      // Pass content as is for these types
+      setMessages((prev) => [...prev, { content, sender, type }]);
+    } else if (typeof content === 'string') {
+      // Content is a string
+      setMessages((prev) => [...prev, { content, sender, type }]);
+    } else if (content && typeof content === 'object' && content.message) {
+      // Content is an object with a message property
+      setMessages((prev) => [...prev, { content: content.message, sender, type }]);
+    } else {
+      // Other cases
+      setMessages((prev) => [...prev, { content: JSON.stringify(content), sender, type }]);
+    }
   }, []);
-
-  const handleRestart = async () => {
-    setIsOrderComplete(false);
-    clearConversation();
-  };
-
-  const clearConversation = async () => {
-    sendMessage("quit");
-    setMessages([]);
-    setCart({});
-    setIsOrderProcessing(false);
-    setIsOrderComplete(false);
-    setShowUserForm(false);
-    setTempMessage(null);
-    addMessage("Welcome! I'm BookWorm, your virtual assistant. I’m here to help you browse and find the perfect book for your collection. Ready to start exploring?", "bot");
-  };
-
-  const handleClose = async () => {
-    sendMessage("quit");
-    setIsOpen(false);
-    setMessages([]);
-    setCart([]);
-    setIsOrderProcessing(false);
-  };
 
   const handleAddToCart = (book) => {
     setCart((prevCart) => {
@@ -592,41 +690,54 @@ const Chatbot = () => {
     setShowUserForm(true);
   };
 
-  const handleOrderConfirmation = (orderDetails) => {
-    addMessage(orderDetails, "bot", "order_confirmation");
+  const handleOrderConfirmation = (orderResponse) => {
+    console.log("Order response received in handleOrderConfirmation:", orderResponse);
+  
+    if (
+      orderResponse &&
+      orderResponse.type === "order_confirmation" &&
+      orderResponse.response
+    ) {
+      const orderDetails = orderResponse.response;
+      addMessage(orderDetails, "bot", "order_confirmation");
+    } else {
+      console.error("Invalid order response:", orderResponse);
+      addMessage("An error occurred while placing the order.", "bot", "error");
+    }
   };
+    
 
   const handleFormSubmit = async (formData) => {
     setIsOrderProcessing(true);
     setShowUserForm(false);
-  
+
     try {
       const cartArray = Object.values(cart).map((item) => ({
         ...item.book,
         quantity: item.quantity,
       }));
-  
+
       const userDetails = {
+        user_id: userId,
         name: formData.name,
         address: formData.address,
         cardNumber: formData.cardNumber,
         expiryDate: formData.expiryDate,
         cvv: formData.cvv,
       };
-  
+
       const payload = {
         order_data: cartArray,
         user_details: userDetails,
       };
-  
+
       const response = await axios.post(
         "http://localhost:8000/api/chatbot/place-order",
         payload
       );
-  
-      // Handle the response from the backend
-      if (response?.data?.response) {
-        handleOrderConfirmation(response.data.response); 
+
+      if (response?.data) {
+        handleOrderConfirmation(response.data);
         setCart({});
       } else {
         throw new Error("Invalid response format");
@@ -640,7 +751,7 @@ const Chatbot = () => {
     } finally {
       setIsOrderProcessing(false);
     }
-  };  
+  };
 
   useEffect(() => {
     if (isOpen && messages.length === 0) {
@@ -659,23 +770,43 @@ const Chatbot = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
+
     if (!input.trim() || isLoading) return;
 
     const userInput = input.trim();
-    const lowerInput = userInput.toLowerCase();
     setInput("");
 
-    if (lowerInput === "quit") {
+    if (userInput.toLowerCase() === "quit") {
       handleClose();
-    } else if (lowerInput === "clear") {
+    } else if (userInput.toLowerCase() === "clear") {
       addMessage(userInput, "user");
-      await clearConversation();
+      clearConversation();
     } else {
       addMessage(userInput, "user");
-      await sendMessage(userInput);
+      sendMessage(userInput);
     }
+  };
+
+  const handleClose = () => {
+    setIsOpen(false);
+    setMessages([]);
+    setCart({});
+    setIsOrderProcessing(false);
+  };
+
+  const clearConversation = () => {
+    setMessages([]);
+    setCart({});
+    setIsOrderProcessing(false);
+    setIsOrderComplete(false);
+    setShowUserForm(false);
+    setTempMessage(null);
+    addMessage(
+      "Welcome! I'm BookWorm, your virtual assistant. I’m here to help you browse and find the perfect book for your collection. Ready to start exploring?",
+      "bot"
+    );
   };
 
   return (
@@ -685,67 +816,28 @@ const Chatbot = () => {
           onClick={() => setIsOpen(true)}
           className="bg-blue-500 text-white rounded-full p-4 shadow-lg hover:bg-blue-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-            />
-          </svg>
+          <FontAwesomeIcon icon={faRobot} className="h-6 w-6" />
         </button>
       ) : (
         <div className="bg-white rounded-lg shadow-xl flex flex-col w-[28rem] h-[36rem] transition-all duration-300 ease-in-out">
           <div className="bg-blue-500 text-white px-4 py-3 flex justify-between items-center rounded-t-lg">
             <FontAwesomeIcon icon={faRobot} className="h-5 w-5 text-white" />
             <h3 className="text-lg font-semibold">BookWorm</h3>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={handleClose}
-                className="text-white hover:text-gray-200 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
+            <button
+              onClick={handleClose}
+              className="text-white hover:text-gray-200 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
+            >
+              X
+            </button>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {messages.map((msg, index) => (
-              <div
-                key={index}
-                className={`flex ${
-                  msg.sender === "user" ? "justify-end" : "justify-start"
-                }`}
-              >
+            {Array.isArray(messages) && messages.length > 0 ? (
+              messages.map((msg, index) => (
                 <div
-                  className={`${
-                    msg.type === "recommendations" ||
-                    msg.type === "order_confirmation"
-                      ? "max-w-[75%]"
-                      : "max-w-[75%]"
-                  } p-3 rounded-lg ${
-                    msg.sender === "user"
-                      ? "bg-blue-100 text-blue-900"
-                      : "bg-gray-100 text-gray-900"
-                  } shadow-md`}
+                  key={index}
+                  className={`flex ${
+                    msg.sender === "user" ? "justify-end" : "justify-start"
+                  }`}
                 >
                   {msg.type === "recommendations" ? (
                     <div className="w-full space-y-4">
@@ -777,92 +869,104 @@ const Chatbot = () => {
               <div className="flex justify-center">
                 <div className="bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm">
                   {tempMessage}
+
+                  <div
+                    className={`${
+                      msg.type === "recommendations" ||
+                      msg.type === "order_confirmation"
+                        ? "max-w-full"
+                        : "max-w-[75%]"
+                    } p-3 rounded-lg ${
+                      msg.sender === "user"
+                        ? "bg-blue-100 text-blue-900"
+                        : "bg-gray-100 text-gray-900"
+                    } shadow-md`}
+                  >
+                    {msg.type === "recommendations" &&
+                    Array.isArray(msg.content) ? (
+                      <div className="w-full space-y-4">
+                        {msg.content.length > 0 ? (
+                          msg.content.map((book, bookIndex) => (
+                            <BookCard
+                              key={`${book.title}-${bookIndex}`}
+                              book={book}
+                              onAddToCart={handleAddToCart}
+                            />
+                          ))
+                        ) : (
+                          <p className="text-sm text-gray-500">
+                            No recommendations available.
+                          </p>
+                        )}
+                      </div>
+                    ) : msg.type === "order_confirmation" ? (
+                      <OrderConfirmationCard orderDetails={msg.content} />
+                    ) : (
+                      <p className="text-sm">{msg.content}</p>
+                    )}
+                  </div>
                 </div>
-              </div>
+              ))
+            ) : (
+              <p>No messages to display</p>
             )}
-            <div ref={messagesEndRef} />
+            {showUserForm ? (
+              <div className="overflow-y-auto max-h-[20rem] p-4">
+                <UserForm
+                  onSubmit={handleFormSubmit}
+                  onCancel={() => setShowUserForm(false)}
+                />
+              </div>
+            ) : (
+              <Cart
+                cartItems={cart}
+                onRemoveFromCart={handleRemoveFromCart}
+                onPlaceOrder={handlePlaceOrder}
+                isOrderProcessing={isOrderProcessing}
+              />
+            )}
           </div>
-
-          {showUserForm ? (
-            <UserForm
-              onSubmit={handleFormSubmit}
-              onCancel={() => setShowUserForm(false)}
-            />
-          ) : (
-            <Cart
-              cartItems={cart}
-              onRemoveFromCart={handleRemoveFromCart}
-              onPlaceOrder={handlePlaceOrder}
-              isOrderProcessing={isOrderProcessing}
-            />
-          )}
-
           <form onSubmit={handleSubmit} className="border-t p-4 flex">
-            {isOrderComplete ? (
-              <button
-                onClick={handleRestart}
-                className="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 flex items-center justify-center space-x-2"
-              >
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Type your message..."
+              className="flex-1 border rounded-l-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              disabled={isLoading}
+            />
+            <button
+              type="submit"
+              className={`bg-blue-500 text-white px-4 py-2 rounded-r-lg ${
+                isLoading ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-600"
+              } transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
+              disabled={isLoading}
+            >
+              {isLoading ? (
                 <svg
+                  className="animate-spin h-5 w-5 text-white"
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4"
                   fill="none"
                   viewBox="0 0 24 24"
-                  stroke="currentColor"
                 >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
                   <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   />
                 </svg>
-                <span>Start New Chat</span>
-              </button>
-            ) : (
-              <>
-                <input
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Type your message..."
-                  className="flex-1 border rounded-l-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                  disabled={isLoading}
-                />
-                <button
-                  type="submit"
-                  className={`bg-blue-500 text-white px-4 py-2 rounded-r-lg 
-          ${isLoading ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-600"} 
-          transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <svg
-                      className="animate-spin h-5 w-5 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      />
-                    </svg>
-                  ) : (
-                    "Send"
-                  )}
-                </button>
-              </>
-            )}
+              ) : (
+                "Send"
+              )}
+            </button>
           </form>
         </div>
       )}
