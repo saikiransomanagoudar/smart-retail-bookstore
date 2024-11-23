@@ -7,7 +7,9 @@ import axios from "axios";
 const BookCard = ({ book, onAddToCart }) => (
   <div className="flex bg-white rounded-lg shadow-md overflow-hidden mb-4 hover:shadow-lg transition-shadow duration-300">
     <img
-      src={book.image_url || "https://via.placeholder.com/100x150?text=No+Image"}
+      src={
+        book.image_url || "https://via.placeholder.com/100x150?text=No+Image"
+      }
       alt={book.title || "Book"}
       className="w-20 h-30 object-cover"
     />
@@ -289,7 +291,7 @@ const OrderConfirmationCard = ({ orderDetails }) => {
 
   const formatDate = (dateString) => {
     try {
-      const isoDateString = dateString.replace(' ', 'T');
+      const isoDateString = dateString.replace(" ", "T");
       return new Date(isoDateString).toLocaleDateString();
     } catch {
       return "Invalid date";
@@ -394,50 +396,60 @@ const OrderListCard = ({ orders, onViewDetails }) => {
   return (
     <div className="w-full space-y-3">
       {orders.map((order, index) => (
-        <div 
-          key={index} 
+        <div
+          key={index}
           className="bg-white rounded-lg shadow-sm p-4 border border-gray-100 hover:shadow-md transition-shadow duration-200"
         >
           <div className="flex flex-col space-y-2">
             <div className="flex justify-between items-center">
-              <span className="text-sm font-medium text-gray-900">Order ID</span>
-              <span className="text-sm text-gray-600 font-mono">{order.order_id.slice(-8)}</span>
-            </div>
-            
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium text-gray-900">Ordered On</span>
-              <span className="text-sm text-gray-600">
-                {new Date(order.purchase_date.replace(' ', 'T')).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric'
-                })}
+              <span className="text-sm font-medium text-gray-900">
+                Order ID
+              </span>
+              <span className="text-sm text-gray-600 font-mono">
+                {order.order_id.slice(-8)}
               </span>
             </div>
-            
+
             <div className="flex justify-between items-center">
-              <span className="text-sm font-medium text-gray-900">Delivery By</span>
+              <span className="text-sm font-medium text-gray-900">
+                Ordered On
+              </span>
               <span className="text-sm text-gray-600">
-                {new Date(order.expected_delivery).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric'
+                {new Date(
+                  order.purchase_date.replace(" ", "T")
+                ).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
                 })}
               </span>
             </div>
 
-            <button 
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium text-gray-900">
+                Delivery By
+              </span>
+              <span className="text-sm text-gray-600">
+                {new Date(order.expected_delivery).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                })}
+              </span>
+            </div>
+
+            <button
               className="mt-2 w-full text-sm bg-blue-50 text-blue-600 py-2 px-4 rounded-md hover:bg-blue-100 transition-colors duration-200 flex items-center justify-center space-x-1"
               onClick={() => onViewDetails(order.order_id)}
             >
               <span>View Details</span>
-              <svg 
-                className="w-4 h-4" 
-                fill="none" 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth="2" 
-                viewBox="0 0 24 24" 
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
                 stroke="currentColor"
               >
                 <path d="M9 5l7 7-7 7"></path>
@@ -454,11 +466,11 @@ const OrderInfoCard = ({ orderInfo }) => {
   if (!orderInfo) return null;
 
   const formatDate = (dateString) => {
-    return new Date(dateString.replace(' ', 'T')).toLocaleDateString('en-US', {
-      weekday: 'short',
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+    return new Date(dateString.replace(" ", "T")).toLocaleDateString("en-US", {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
@@ -467,13 +479,19 @@ const OrderInfoCard = ({ orderInfo }) => {
       <div className="border-l-4 border-blue-500 pl-4 mb-4">
         <div className="flex justify-between items-center mb-2">
           <h3 className="text-lg font-semibold text-gray-800">Order Summary</h3>
-          <span className={`px-3 py-1 rounded-full text-sm ${
-            orderInfo.status === 'Delivered' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
-          }`}>
+          <span
+            className={`px-3 py-1 rounded-full text-sm ${
+              orderInfo.status === "Delivered"
+                ? "bg-green-100 text-green-800"
+                : "bg-blue-100 text-blue-800"
+            }`}
+          >
             {orderInfo.status}
           </span>
         </div>
-        <p className="text-sm text-gray-600">Order #{orderInfo.order_id.slice(-8)}</p>
+        <p className="text-sm text-gray-600">
+          Order #{orderInfo.order_id.slice(-8)}
+        </p>
       </div>
 
       <div className="space-y-4">
@@ -481,11 +499,15 @@ const OrderInfoCard = ({ orderInfo }) => {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <p className="text-sm text-gray-600">Ordered On</p>
-            <p className="text-sm font-medium">{formatDate(orderInfo.order_placed_on)}</p>
+            <p className="text-sm font-medium">
+              {formatDate(orderInfo.order_placed_on)}
+            </p>
           </div>
           <div>
             <p className="text-sm text-gray-600">Expected Delivery</p>
-            <p className="text-sm font-medium">{formatDate(orderInfo.expected_delivery)}</p>
+            <p className="text-sm font-medium">
+              {formatDate(orderInfo.expected_delivery)}
+            </p>
           </div>
         </div>
 
@@ -507,15 +529,21 @@ const OrderInfoCard = ({ orderInfo }) => {
         <div className="space-y-3">
           <div className="flex justify-between items-center font-medium">
             <span className="text-gray-700">Total Amount</span>
-            <span className="text-lg text-blue-600">${orderInfo.total_cost}</span>
+            <span className="text-lg text-blue-600">
+              ${orderInfo.total_cost}
+            </span>
           </div>
 
           {orderInfo.shipping_address && (
             <div className="pt-3 border-t border-gray-100">
-              <p className="text-sm font-medium text-gray-700 mb-1">Delivery Address</p>
+              <p className="text-sm font-medium text-gray-700 mb-1">
+                Delivery Address
+              </p>
               <p className="text-sm text-gray-600">
                 {orderInfo.shipping_address.street},<br />
-                {orderInfo.shipping_address.city}, {orderInfo.shipping_address.state} {orderInfo.shipping_address.zip_code}
+                {orderInfo.shipping_address.city},{" "}
+                {orderInfo.shipping_address.state}{" "}
+                {orderInfo.shipping_address.zip_code}
               </p>
             </div>
           )}
@@ -539,23 +567,23 @@ const Chatbot = () => {
   const [tempMessage, setTempMessage] = useState(null);
   const messagesEndRef = useRef(null);
 
-
   const handleViewOrderDetails = async (orderId) => {
     setIsLoading(true);
     try {
       const response = await axios.post(
         "http://localhost:8000/api/chatbot/chat",
-        { 
+        {
           message: `view order details ${orderId}`,
           metadata: {
             type: "order_info", // Changed from order_details to order_info
-            order_id: orderId
-          }
+            order_id: orderId,
+          },
         }
       );
       const data = response.data;
-      
-      if (data.type === "order_info") { // Changed this check to order_info
+
+      if (data.type === "order_info") {
+        // Changed this check to order_info
         addMessage("Here are the details for your order:", "bot");
         addMessage(data.response, "bot", "order_info"); // Changed from order_confirmation to order_info
       } else {
@@ -579,59 +607,81 @@ const Chatbot = () => {
         "http://localhost:8000/api/chatbot/chat",
         { message }
       );
+  
       const data = response.data;
-
-      if (message.toLowerCase() === "quit") {
+  
+      if (!data || !data.type || !data.response) {
+        console.error("Invalid backend response format:", data);
+        addMessage("I'm sorry, I couldn't process your request.", "bot");
         return;
       }
-      
-      if (data.type === "greeting" || data.type === "clarification") {
-        addMessage(data.response, "bot");
-      } else if (data.type === "question" || data.type === "order_question") {
-        addMessage(data.response, "bot");
-      } else if (data.type === "recommendation") {
-        const recommendations = data.response.map((book) => ({
-          title: book.title || "Untitled",
-          pages: book.pages || "N/A",
-          release_year: book.release_year || "N/A",
-          Price: book.Price || "N/A",
-          ReasonForRecommendation:
-            book.ReasonForRecommendation || "No recommendation reason provided.",
-          image_url:
-            book.image_url ||
-            "https://via.placeholder.com/100x150?text=No+Image",
-        }));
-
-        addMessage(
-          "Based on our conversation, here are some book recommendations for you:",
-          "bot"
-        );
-        addMessage(recommendations, "bot", "recommendations");
-        addMessage(
-          "Would you like more recommendations or have any other questions?",
-          "bot"
-        );
-      } else if (data.type === "order_confirmation") {
-        addMessage(data.response, "bot", "order_confirmation");
-        setIsOrderProcessing(false);
-        setCart({});
-        setIsOrderComplete(true);
-
-      }else if(data.type === "order_list"){
-        if (data.response && data.response.length > 0) {
-          addMessage("Here are your recent orders:", "bot");
-          addMessage(data.response, "bot", "order_list");
-          addMessage("You can view the details of any order or ask me something else.", "bot");
-        } else {
-          addMessage("You don't have any orders yet. Would you like to browse some books?", "bot");
-        }
-      }
-      else if(data.type === "order_info") {
-        addMessage("Here's the current status of your order:", "bot");
-        addMessage(data.response, "bot", "order_info");
-
-      } else {
-        addMessage(data.response, "bot");
+  
+      switch (data.type) {
+        case "greeting":
+        case "clarification":
+        case "question":
+        case "order_question":
+          addMessage(data.response, "bot");
+          break;
+  
+        case "recommendation":
+          const recommendations = data.response.map((book) => ({
+            title: book.title || "Untitled",
+            pages: book.pages || "N/A",
+            release_year: book.release_year || "N/A",
+            Price: book.Price || "N/A",
+            ReasonForRecommendation:
+              book.ReasonForRecommendation ||
+              "No recommendation reason provided.",
+            image_url:
+              book.image_url ||
+              "https://via.placeholder.com/100x150?text=No+Image",
+          }));
+          addMessage(
+            "Based on our conversation, here are some book recommendations for you:",
+            "bot"
+          );
+          addMessage(recommendations, "bot", "recommendations");
+          addMessage(
+            "Would you like more recommendations or have any other questions?",
+            "bot"
+          );
+          break;
+  
+        case "order_confirmation":
+          addMessage(data.response, "bot", "order_confirmation");
+          setIsOrderProcessing(false);
+          setCart({});
+          setIsOrderComplete(true);
+          break;
+  
+        case "order_list":
+          if (Array.isArray(data.response) && data.response.length > 0) {
+            addMessage("Here are your recent orders:", "bot");
+            addMessage(data.response, "bot", "order_list");
+            addMessage(
+              "You can view the details of any order or ask me something else.",
+              "bot"
+            );
+          } else {
+            addMessage(
+              "You don't have any orders yet. Would you like to browse some books?",
+              "bot"
+            );
+          }
+          break;
+  
+        case "order_info":
+          addMessage("Here's the current status of your order:", "bot");
+          addMessage(data.response, "bot", "order_info");
+          break;
+  
+        default:
+          addMessage(
+            data.response || "I'm sorry, I couldn't process your request.",
+            "bot"
+          );
+          break;
       }
     } catch (error) {
       console.error("Error communicating with chatbot:", error);
@@ -642,22 +692,21 @@ const Chatbot = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  };  
 
   const addMessage = useCallback((content, sender, type = "text") => {
-    if (type === "order_confirmation" || type === "recommendations") {
-      // Pass content as is for these types
-      setMessages((prev) => [...prev, { content, sender, type }]);
-    } else if (typeof content === 'string') {
-      // Content is a string
-      setMessages((prev) => [...prev, { content, sender, type }]);
-    } else if (content && typeof content === 'object' && content.message) {
-      // Content is an object with a message property
-      setMessages((prev) => [...prev, { content: content.message, sender, type }]);
-    } else {
-      // Other cases
-      setMessages((prev) => [...prev, { content: JSON.stringify(content), sender, type }]);
-    }
+    setMessages((prev) => [
+      ...prev,
+      {
+        content: Array.isArray(content)
+          ? content // Array content (e.g., recommendations)
+          : typeof content === "object" && content !== null
+          ? JSON.parse(JSON.stringify(content)) // Deep clone objects
+          : String(content), // Convert anything else to string
+        sender,
+        type,
+      },
+    ]);
   }, []);
 
   const handleAddToCart = (book) => {
@@ -691,8 +740,11 @@ const Chatbot = () => {
   };
 
   const handleOrderConfirmation = (orderResponse) => {
-    console.log("Order response received in handleOrderConfirmation:", orderResponse);
-  
+    console.log(
+      "Order response received in handleOrderConfirmation:",
+      orderResponse
+    );
+
     if (
       orderResponse &&
       orderResponse.type === "order_confirmation" &&
@@ -705,7 +757,6 @@ const Chatbot = () => {
       addMessage("An error occurred while placing the order.", "bot", "error");
     }
   };
-    
 
   const handleFormSubmit = async (formData) => {
     setIsOrderProcessing(true);
@@ -816,116 +867,115 @@ const Chatbot = () => {
           onClick={() => setIsOpen(true)}
           className="bg-blue-500 text-white rounded-full p-4 shadow-lg hover:bg-blue-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
         >
-          <FontAwesomeIcon icon={faRobot} className="h-6 w-6" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+            />
+          </svg>
         </button>
       ) : (
         <div className="bg-white rounded-lg shadow-xl flex flex-col w-[28rem] h-[36rem] transition-all duration-300 ease-in-out">
           <div className="bg-blue-500 text-white px-4 py-3 flex justify-between items-center rounded-t-lg">
             <FontAwesomeIcon icon={faRobot} className="h-5 w-5 text-white" />
             <h3 className="text-lg font-semibold">BookWorm</h3>
-            <button
-              onClick={handleClose}
-              className="text-white hover:text-gray-200 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
-            >
-              X
-            </button>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={handleClose}
+                className="text-white hover:text-gray-200 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {Array.isArray(messages) && messages.length > 0 ? (
-              messages.map((msg, index) => (
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {messages.map((msg, index) => (
                 <div
                   key={index}
                   className={`flex ${
                     msg.sender === "user" ? "justify-end" : "justify-start"
                   }`}
                 >
-                  {msg.type === "recommendations" ? (
-                    <div className="w-full space-y-4">
-                      {msg.content.map((book, bookIndex) => (
-                        <BookCard
-                          key={bookIndex}
-                          book={book}
-                          onAddToCart={handleAddToCart}
-                        />
-                      ))}
-                    </div>
-                  ) : msg.type === "order_confirmation" ? (
-                    <OrderConfirmationCard orderDetails={msg.content} />
-                  ) : msg.type === "order_list" ? (
-                    <OrderListCard 
-                      orders={msg.content} 
-                      onViewDetails={handleViewOrderDetails}
-                    />
-                  ) : msg.type === "order_info" ? (
-                    <OrderInfoCard orderInfo={msg.content} />
-                  ) : (
-                    <p className="text-sm">{msg.content}</p>
-                  )}
-                </div>
-              </div>
-            ))}
-
-            {tempMessage && (
-              <div className="flex justify-center">
-                <div className="bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm">
-                  {tempMessage}
-
                   <div
-                    className={`${
-                      msg.type === "recommendations" ||
-                      msg.type === "order_confirmation"
-                        ? "max-w-full"
-                        : "max-w-[75%]"
-                    } p-3 rounded-lg ${
+                    className={`p-3 rounded-lg ${
                       msg.sender === "user"
                         ? "bg-blue-100 text-blue-900"
                         : "bg-gray-100 text-gray-900"
-                    } shadow-md`}
+                    } shadow-md max-w-[75%]`}
                   >
-                    {msg.type === "recommendations" &&
-                    Array.isArray(msg.content) ? (
+                    {/* Render content based on message type */}
+                    {msg.type === "recommendations" ? (
                       <div className="w-full space-y-4">
-                        {msg.content.length > 0 ? (
-                          msg.content.map((book, bookIndex) => (
-                            <BookCard
-                              key={`${book.title}-${bookIndex}`}
-                              book={book}
-                              onAddToCart={handleAddToCart}
-                            />
-                          ))
-                        ) : (
-                          <p className="text-sm text-gray-500">
-                            No recommendations available.
-                          </p>
-                        )}
+                        {msg.content.map((book, bookIndex) => (
+                          <BookCard
+                            key={bookIndex}
+                            book={book}
+                            onAddToCart={handleAddToCart}
+                          />
+                        ))}
                       </div>
                     ) : msg.type === "order_confirmation" ? (
                       <OrderConfirmationCard orderDetails={msg.content} />
+                    ) : msg.type === "order_list" ? (
+                      <OrderListCard
+                        orders={msg.content}
+                        onViewDetails={handleViewOrderDetails}
+                      />
+                    ) : msg.type === "order_info" ? (
+                      <OrderInfoCard orderInfo={msg.content} />
                     ) : (
                       <p className="text-sm">{msg.content}</p>
                     )}
                   </div>
                 </div>
-              ))
-            ) : (
-              <p>No messages to display</p>
-            )}
-            {showUserForm ? (
-              <div className="overflow-y-auto max-h-[20rem] p-4">
-                <UserForm
-                  onSubmit={handleFormSubmit}
-                  onCancel={() => setShowUserForm(false)}
-                />
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
+            {tempMessage && (
+              <div className="flex justify-center">
+                <div className="bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm">
+                  {tempMessage}
+                </div>
               </div>
-            ) : (
-              <Cart
-                cartItems={cart}
-                onRemoveFromCart={handleRemoveFromCart}
-                onPlaceOrder={handlePlaceOrder}
-                isOrderProcessing={isOrderProcessing}
-              />
             )}
+            <div ref={messagesEndRef} />
           </div>
+
+          {showUserForm ? (
+            <UserForm
+              onSubmit={handleFormSubmit}
+              onCancel={() => setShowUserForm(false)}
+            />
+          ) : (
+            <Cart
+              cartItems={cart}
+              onRemoveFromCart={handleRemoveFromCart}
+              onPlaceOrder={handlePlaceOrder}
+              isOrderProcessing={isOrderProcessing}
+            />
+          )}
           <form onSubmit={handleSubmit} className="border-t p-4 flex">
             <input
               type="text"
@@ -938,7 +988,9 @@ const Chatbot = () => {
             <button
               type="submit"
               className={`bg-blue-500 text-white px-4 py-2 rounded-r-lg ${
-                isLoading ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-600"
+                isLoading
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:bg-blue-600"
               } transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
               disabled={isLoading}
             >
