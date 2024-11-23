@@ -1,8 +1,10 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey
+import traceback
+
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, select, and_
 from backend.app.database.database import Base, SessionLocal
 from datetime import datetime, timedelta
 import logging
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 import uuid
 
 class Order(Base):
@@ -27,6 +29,130 @@ class Order(Base):
     # Dates
     purchase_date = Column(DateTime, default=datetime.utcnow)
     expected_shipping_date = Column(DateTime)
+
+    @classmethod
+    def get_user_orders(cls, user_id: int) -> List[Dict[str, Any]]:
+        """Get 3 most recent orders for a specific user"""
+        db = SessionLocal()
+        try:
+            # Query to get the 3 latest unique orders by purchase date
+            stmt = (
+                select(
+                    cls.order_id,
+                    cls.purchase_date,
+                    cls.expected_shipping_date
+                )
+                .where(cls.user_id == user_id)
+                .group_by(cls.order_id, cls.purchase_date, cls.expected_shipping_date)
+                .order_by(cls.purchase_date.desc())
+                .limit(3)  # Limit to 3 most recent orders
+            )
+
+            result = db.execute(stmt)
+            orders = []
+
+            for row in result.mappings():
+                try:
+                    orders.append({
+                        "order_id": row['order_id'],
+                        "purchase_date": row['purchase_date'].strftime("%Y-%m-%d %H:%M:%S"),
+                        "expected_delivery": row['expected_shipping_date'].strftime("%Y-%m-%d")
+                    })
+                except Exception as e:
+                    logging.error(f"Error processing order row: {str(e)}")
+                    continue
+
+            return orders
+        except Exception as e:
+            logging.error(f"Error fetching user orders: {str(e)}")
+            return []
+        finally:
+            db.close()
+
+    @classmethod
+    def get_order_details(cls, order_id: str, user_id: int) -> Optional[Dict[str, Any]]:
+        """Get detailed information for a specific order"""
+        db = SessionLocal()
+        try:
+            # Query to get all items in the order
+            stmt = (
+                select(
+                    cls.order_id,
+                    cls.title,
+                    cls.price,
+                    cls.total_quantity,
+                    cls.purchase_date,
+                    cls.expected_shipping_date,
+                    cls.street,
+                    cls.city,
+                    cls.state,
+                    cls.zip_code,
+                    cls.card_number,
+                    cls.expiry_date
+                )
+                .where(cls.order_id == order_id)
+            )
+
+            logging.info(f"Generated SQL query: {stmt}")
+
+            result = db.execute(stmt)
+            rows = list(result.mappings())
+            logging.info(f"Query returned {len(rows)} rows")
+            if rows:
+                logging.info(f"First row data: {dict(rows[0])}")
+
+            items = []
+            order_info = None
+            total_amount = 0
+
+            for row in rows:
+                logging.info(f"Processing row: {dict(row)}")
+                if not order_info:
+                    order_info = {
+                        "order_id": row['order_id'],
+                        "purchase_date": row['purchase_date'].strftime("%Y-%m-%d %H:%M:%S"),
+                        "expected_delivery": row['expected_shipping_date'].strftime("%Y-%m-%d"),
+                        "shipping_address": {
+                            "street": row['street'],
+                            "city": row['city'],
+                            "state": row['state'],
+                            "zip_code": row['zip_code']
+                        },
+                        "payment_info": {
+                            "card_number": row['card_number'],
+                            "expiry_date": row['expiry_date']
+                        }
+                    }
+                    logging.info(f"Created order_info: {order_info}")
+
+                item_price = float(row['price'])
+                item_quantity = int(row['total_quantity'])
+                item = {
+                    "title": row['title'],
+                    "price": item_price,
+                    "quantity": item_quantity,
+                    "subtotal": item_price * item_quantity
+                }
+                items.append(item)
+                total_amount += item_price * item_quantity
+                logging.info(f"Added item: {item}")
+
+            if order_info:
+                order_info["items"] = items
+                order_info["total_amount"] = total_amount
+                logging.info(f"Final order details: {order_info}")
+                return order_info
+
+            logging.warning(f"No data found for order_id: {order_id}")
+            return None
+
+        except Exception as e:
+            logging.error(f"Error fetching order details: {str(e)}")
+            import traceback
+            logging.error(f"Error traceback: {traceback.format_exc()}")
+            return None
+        finally:
+            db.close()
 
     @classmethod
     def create_order(cls, cart_items: List[Dict[str, Any]], order_data: Dict[str, Any]) -> tuple[bool, str]:
