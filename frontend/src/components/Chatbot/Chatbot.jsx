@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faRobot } from "@fortawesome/free-solid-svg-icons";
+import { faPaperclip } from "@fortawesome/free-solid-svg-icons";
 import { useUser } from "@clerk/clerk-react";
 import axios from "axios";
 
 const BookCard = ({ book, onAddToCart }) => (
   <div className="flex bg-white rounded-lg shadow-md overflow-hidden mb-4 hover:shadow-lg transition-shadow duration-300">
     <img
-      src={book.image_url || "https://via.placeholder.com/100x150?text=No+Image"}
+      src={
+        book.image_url || "https://via.placeholder.com/100x150?text=No+Image"
+      }
       alt={book.title || "Book"}
       className="w-20 h-30 object-cover"
     />
@@ -289,7 +292,7 @@ const OrderConfirmationCard = ({ orderDetails }) => {
 
   const formatDate = (dateString) => {
     try {
-      const isoDateString = dateString.replace(' ', 'T');
+      const isoDateString = dateString.replace(" ", "T");
       return new Date(isoDateString).toLocaleDateString();
     } catch {
       return "Invalid date";
@@ -394,50 +397,60 @@ const OrderListCard = ({ orders, onViewDetails }) => {
   return (
     <div className="w-full space-y-3">
       {orders.map((order, index) => (
-        <div 
-          key={index} 
+        <div
+          key={index}
           className="bg-white rounded-lg shadow-sm p-4 border border-gray-100 hover:shadow-md transition-shadow duration-200"
         >
           <div className="flex flex-col space-y-2">
             <div className="flex justify-between items-center">
-              <span className="text-sm font-medium text-gray-900">Order ID</span>
-              <span className="text-sm text-gray-600 font-mono">{order.order_id.slice(-8)}</span>
-            </div>
-            
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium text-gray-900">Ordered On</span>
-              <span className="text-sm text-gray-600">
-                {new Date(order.purchase_date.replace(' ', 'T')).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric'
-                })}
+              <span className="text-sm font-medium text-gray-900">
+                Order ID
+              </span>
+              <span className="text-sm text-gray-600 font-mono">
+                {order.order_id.slice(-8)}
               </span>
             </div>
-            
+
             <div className="flex justify-between items-center">
-              <span className="text-sm font-medium text-gray-900">Delivery By</span>
+              <span className="text-sm font-medium text-gray-900">
+                Ordered On
+              </span>
               <span className="text-sm text-gray-600">
-                {new Date(order.expected_delivery).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric'
+                {new Date(
+                  order.purchase_date.replace(" ", "T")
+                ).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
                 })}
               </span>
             </div>
 
-            <button 
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium text-gray-900">
+                Delivery By
+              </span>
+              <span className="text-sm text-gray-600">
+                {new Date(order.expected_delivery).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                })}
+              </span>
+            </div>
+
+            <button
               className="mt-2 w-full text-sm bg-blue-50 text-blue-600 py-2 px-4 rounded-md hover:bg-blue-100 transition-colors duration-200 flex items-center justify-center space-x-1"
               onClick={() => onViewDetails(order.order_id)}
             >
               <span>View Details</span>
-              <svg 
-                className="w-4 h-4" 
-                fill="none" 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth="2" 
-                viewBox="0 0 24 24" 
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
                 stroke="currentColor"
               >
                 <path d="M9 5l7 7-7 7"></path>
@@ -454,11 +467,11 @@ const OrderInfoCard = ({ orderInfo }) => {
   if (!orderInfo) return null;
 
   const formatDate = (dateString) => {
-    return new Date(dateString.replace(' ', 'T')).toLocaleDateString('en-US', {
-      weekday: 'short',
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+    return new Date(dateString.replace(" ", "T")).toLocaleDateString("en-US", {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
@@ -467,13 +480,19 @@ const OrderInfoCard = ({ orderInfo }) => {
       <div className="border-l-4 border-blue-500 pl-4 mb-4">
         <div className="flex justify-between items-center mb-2">
           <h3 className="text-lg font-semibold text-gray-800">Order Summary</h3>
-          <span className={`px-3 py-1 rounded-full text-sm ${
-            orderInfo.status === 'Delivered' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
-          }`}>
+          <span
+            className={`px-3 py-1 rounded-full text-sm ${
+              orderInfo.status === "Delivered"
+                ? "bg-green-100 text-green-800"
+                : "bg-blue-100 text-blue-800"
+            }`}
+          >
             {orderInfo.status}
           </span>
         </div>
-        <p className="text-sm text-gray-600">Order #{orderInfo.order_id.slice(-8)}</p>
+        <p className="text-sm text-gray-600">
+          Order #{orderInfo.order_id.slice(-8)}
+        </p>
       </div>
 
       <div className="space-y-4">
@@ -481,11 +500,15 @@ const OrderInfoCard = ({ orderInfo }) => {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <p className="text-sm text-gray-600">Ordered On</p>
-            <p className="text-sm font-medium">{formatDate(orderInfo.order_placed_on)}</p>
+            <p className="text-sm font-medium">
+              {formatDate(orderInfo.order_placed_on)}
+            </p>
           </div>
           <div>
             <p className="text-sm text-gray-600">Expected Delivery</p>
-            <p className="text-sm font-medium">{formatDate(orderInfo.expected_delivery)}</p>
+            <p className="text-sm font-medium">
+              {formatDate(orderInfo.expected_delivery)}
+            </p>
           </div>
         </div>
 
@@ -507,15 +530,21 @@ const OrderInfoCard = ({ orderInfo }) => {
         <div className="space-y-3">
           <div className="flex justify-between items-center font-medium">
             <span className="text-gray-700">Total Amount</span>
-            <span className="text-lg text-blue-600">${orderInfo.total_cost}</span>
+            <span className="text-lg text-blue-600">
+              ${orderInfo.total_cost}
+            </span>
           </div>
 
           {orderInfo.shipping_address && (
             <div className="pt-3 border-t border-gray-100">
-              <p className="text-sm font-medium text-gray-700 mb-1">Delivery Address</p>
+              <p className="text-sm font-medium text-gray-700 mb-1">
+                Delivery Address
+              </p>
               <p className="text-sm text-gray-600">
                 {orderInfo.shipping_address.street},<br />
-                {orderInfo.shipping_address.city}, {orderInfo.shipping_address.state} {orderInfo.shipping_address.zip_code}
+                {orderInfo.shipping_address.city},{" "}
+                {orderInfo.shipping_address.state}{" "}
+                {orderInfo.shipping_address.zip_code}
               </p>
             </div>
           )}
@@ -537,25 +566,47 @@ const Chatbot = () => {
   const [isOrderComplete, setIsOrderComplete] = useState(false);
   const [showUserForm, setShowUserForm] = useState(false);
   const [tempMessage, setTempMessage] = useState(null);
+  const [attachedImage, setAttachedImage] = useState(null);
   const messagesEndRef = useRef(null);
 
+  // Add a reference for the file input
+  const fileInputRef = useRef(null);
+
+  // Function to handle file selection
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setAttachedImage(file);
+      // Optionally, show a preview or a message indicating the image is attached
+      setTempMessage(`Attached image: ${file.name}`);
+      setTimeout(() => setTempMessage(null), 3000);
+    }
+  };
+
+  // Function to trigger the file input dialog
+  const handleAttachImage = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
 
   const handleViewOrderDetails = async (orderId) => {
     setIsLoading(true);
     try {
       const response = await axios.post(
         "http://localhost:8000/api/chatbot/chat",
-        { 
+        {
           message: `view order details ${orderId}`,
           metadata: {
             type: "order_info", // Changed from order_details to order_info
-            order_id: orderId
-          }
+            order_id: orderId,
+          },
         }
       );
       const data = response.data;
-      
-      if (data.type === "order_info") { // Changed this check to order_info
+
+      if (data.type === "order_info") {
+        // Changed this check to order_info
         addMessage("Here are the details for your order:", "bot");
         addMessage(data.response, "bot", "order_info"); // Changed from order_confirmation to order_info
       } else {
@@ -575,6 +626,14 @@ const Chatbot = () => {
   const sendMessage = async (message) => {
     setIsLoading(true);
     try {
+      const formData = new FormData();
+      formData.append("message", message);
+
+      if (attachedImage) {
+        formData.append("image", attachedImage);
+        // Reset the attached image after sending
+        setAttachedImage(null);
+      }
       const response = await axios.post(
         "http://localhost:8000/api/chatbot/chat",
         { message }
@@ -584,7 +643,8 @@ const Chatbot = () => {
       if (message.toLowerCase() === "quit") {
         return;
       }
-      
+
+
       if (data.type === "greeting" || data.type === "clarification") {
         addMessage(data.response, "bot");
       } else if (data.type === "question" || data.type === "order_question") {
@@ -596,7 +656,8 @@ const Chatbot = () => {
           release_year: book.release_year || "N/A",
           Price: book.Price || "N/A",
           ReasonForRecommendation:
-            book.ReasonForRecommendation || "No recommendation reason provided.",
+            book.ReasonForRecommendation ||
+            "No recommendation reason provided.",
           image_url:
             book.image_url ||
             "https://via.placeholder.com/100x150?text=No+Image",
@@ -616,20 +677,23 @@ const Chatbot = () => {
         setIsOrderProcessing(false);
         setCart({});
         setIsOrderComplete(true);
-
-      }else if(data.type === "order_list"){
+      } else if (data.type === "order_list") {
         if (data.response && data.response.length > 0) {
           addMessage("Here are your recent orders:", "bot");
           addMessage(data.response, "bot", "order_list");
-          addMessage("You can view the details of any order or ask me something else.", "bot");
+          addMessage(
+            "You can view the details of any order or ask me something else.",
+            "bot"
+          );
         } else {
-          addMessage("You don't have any orders yet. Would you like to browse some books?", "bot");
+          addMessage(
+            "You don't have any orders yet. Would you like to browse some books?",
+            "bot"
+          );
         }
-      }
-      else if(data.type === "order_info") {
+      } else if (data.type === "order_info") {
         addMessage("Here's the current status of your order:", "bot");
         addMessage(data.response, "bot", "order_info");
-
       } else {
         addMessage(data.response, "bot");
       }
@@ -648,15 +712,21 @@ const Chatbot = () => {
     if (type === "order_confirmation" || type === "recommendations") {
       // Pass content as is for these types
       setMessages((prev) => [...prev, { content, sender, type }]);
-    } else if (typeof content === 'string') {
+    } else if (typeof content === "string") {
       // Content is a string
       setMessages((prev) => [...prev, { content, sender, type }]);
-    } else if (content && typeof content === 'object' && content.message) {
+    } else if (content && typeof content === "object" && content.message) {
       // Content is an object with a message property
-      setMessages((prev) => [...prev, { content: content.message, sender, type }]);
+      setMessages((prev) => [
+        ...prev,
+        { content: content.message, sender, type },
+      ]);
     } else {
       // Other cases
-      setMessages((prev) => [...prev, { content: JSON.stringify(content), sender, type }]);
+      setMessages((prev) => [
+        ...prev,
+        { content: JSON.stringify(content), sender, type },
+      ]);
     }
   }, []);
 
@@ -691,8 +761,11 @@ const Chatbot = () => {
   };
 
   const handleOrderConfirmation = (orderResponse) => {
-    console.log("Order response received in handleOrderConfirmation:", orderResponse);
-  
+    console.log(
+      "Order response received in handleOrderConfirmation:",
+      orderResponse
+    );
+
     if (
       orderResponse &&
       orderResponse.type === "order_confirmation" &&
@@ -705,7 +778,6 @@ const Chatbot = () => {
       addMessage("An error occurred while placing the order.", "bot", "error");
     }
   };
-    
 
   const handleFormSubmit = async (formData) => {
     setIsOrderProcessing(true);
@@ -839,41 +911,11 @@ const Chatbot = () => {
                     msg.sender === "user" ? "justify-end" : "justify-start"
                   }`}
                 >
-                  {msg.type === "recommendations" ? (
-                    <div className="w-full space-y-4">
-                      {msg.content.map((book, bookIndex) => (
-                        <BookCard
-                          key={bookIndex}
-                          book={book}
-                          onAddToCart={handleAddToCart}
-                        />
-                      ))}
-                    </div>
-                  ) : msg.type === "order_confirmation" ? (
-                    <OrderConfirmationCard orderDetails={msg.content} />
-                  ) : msg.type === "order_list" ? (
-                    <OrderListCard 
-                      orders={msg.content} 
-                      onViewDetails={handleViewOrderDetails}
-                    />
-                  ) : msg.type === "order_info" ? (
-                    <OrderInfoCard orderInfo={msg.content} />
-                  ) : (
-                    <p className="text-sm">{msg.content}</p>
-                  )}
-                </div>
-              </div>
-            ))}
-
-            {tempMessage && (
-              <div className="flex justify-center">
-                <div className="bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm">
-                  {tempMessage}
-
                   <div
                     className={`${
                       msg.type === "recommendations" ||
-                      msg.type === "order_confirmation"
+                      msg.type === "order_confirmation" ||
+                      msg.type === "resolution"
                         ? "max-w-full"
                         : "max-w-[75%]"
                     } p-3 rounded-lg ${
@@ -901,6 +943,13 @@ const Chatbot = () => {
                       </div>
                     ) : msg.type === "order_confirmation" ? (
                       <OrderConfirmationCard orderDetails={msg.content} />
+                    ) : msg.type === "order_list" ? (
+                      <OrderListCard
+                        orders={msg.content}
+                        onViewDetails={handleViewOrderDetails}
+                      />
+                    ) : msg.type === "order_info" ? (
+                      <OrderInfoCard orderInfo={msg.content} />
                     ) : (
                       <p className="text-sm">{msg.content}</p>
                     )}
@@ -909,6 +958,13 @@ const Chatbot = () => {
               ))
             ) : (
               <p>No messages to display</p>
+            )}
+            {tempMessage && (
+              <div className="flex justify-center">
+                <div className="bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm">
+                  {tempMessage}
+                </div>
+              </div>
             )}
             {showUserForm ? (
               <div className="overflow-y-auto max-h-[20rem] p-4">
@@ -926,7 +982,24 @@ const Chatbot = () => {
               />
             )}
           </div>
-          <form onSubmit={handleSubmit} className="border-t p-4 flex">
+          <form
+            onSubmit={handleSubmit}
+            className="border-t p-4 flex items-center"
+          >
+            <button
+              type="button"
+              onClick={handleAttachImage}
+              className="text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 mr-2"
+            >
+              <FontAwesomeIcon icon={faPaperclip} className="h-5 w-5" />
+            </button>
+            <input
+              type="file"
+              accept="image/*"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              style={{ display: "none" }}
+            />
             <input
               type="text"
               value={input}
@@ -938,7 +1011,9 @@ const Chatbot = () => {
             <button
               type="submit"
               className={`bg-blue-500 text-white px-4 py-2 rounded-r-lg ${
-                isLoading ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-600"
+                isLoading
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:bg-blue-600"
               } transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50`}
               disabled={isLoading}
             >

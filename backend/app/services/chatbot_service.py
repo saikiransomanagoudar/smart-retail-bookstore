@@ -10,21 +10,11 @@ from backend.app.database.database import SessionLocal
 from backend.app.models.orders import Order
 from langchain_openai import ChatOpenAI
 from langchain.memory import ConversationBufferMemory
-from fastapi import Depends
-
-
-# Example: Using a session to retrieve the user's ID
-def get_user_id_from_session(session: dict) -> str:
-    user_id = session.get("user_id")
-    if not user_id:
-        raise ValueError("User not logged in.")
-    return user_id
 
 from datetime import datetime, timedelta
 import logging
 import re
 import json
-import traceback
 
 from backend.app.services.graphql_service import graphql_service
 from sqlalchemy.exc import SQLAlchemyError
@@ -33,158 +23,6 @@ logging.basicConfig(level=logging.INFO)
 
 def normalize_title(title: str) -> str:
     return re.split(r":|–|-", title)[-1].strip()
-
-def classify_intent(user_input: str) -> str:
-    fraud_keywords = ["fraudulent", "unauthorized", "unknown charge", "damaged", "broken", "shipping box"]
-    order_keywords = ["order", "purchase", "bought", "delivery", "shipping", "track"]
-    recommendation_keywords = ["recommend", "suggest", "book", "read", "genre", "theme"]
-
-    if any(keyword in user_input.lower() for keyword in fraud_keywords):
-        return "fraud"
-    elif any(keyword in user_input.lower() for keyword in order_keywords):
-        return "order"
-    elif any(keyword in user_input.lower() for keyword in recommendation_keywords):
-        return "recommendation"
-    else:
-        return "unknown"
-
-
-class FraudTransactionAgent:
-    def __init__(self, llm):
-        self.llm = llm  # Use the GPT-4o-mini model here
-        self.state = "INIT"
-        self.issue_type = None
-        self.description = None
-        self.image_url = None
-
-    async def process_fraud_report(self, user_input: str, metadata: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Handles the fraud report process step-by-step.
-        """
-        try:
-            if self.state == "INIT":
-                # Ask for clarification
-                self.state = "CLARIFY_ISSUE"
-                return {
-                    "type": "question",
-                    "response": "Could you please describe the issue you're facing? For example, is it a damaged product or a fraudulent transaction?"
-                }
-
-            elif self.state == "CLARIFY_ISSUE":
-                # Determine the type of issue
-                if "damaged" in user_input.lower() or "box" in user_input.lower():
-                    self.issue_type = "damaged_product"
-                    self.state = "REQUEST_IMAGE"
-                    return {
-                        "type": "question",
-                        "response": "Thank you for clarifying. Please upload an image of the damaged product or shipping box for further review."
-                    }
-                elif "fraudulent" in user_input.lower() or "unauthorized" in user_input.lower():
-                    self.issue_type = "fraudulent_transaction"
-                    self.state = "REQUEST_IMAGE"
-                    return {
-                        "type": "question",
-                        "response": "Thank you for clarifying. Please upload an image of the transaction (e.g., a screenshot or receipt) for further review."
-                    }
-                else:
-                    return {
-                        "type": "clarification",
-                        "response": "I'm sorry, I couldn't identify the issue. Could you please specify if it's a damaged product or a fraudulent transaction?"
-                    }
-
-            elif self.state == "REQUEST_IMAGE":
-                # Handle image upload
-                if "image_url" in metadata:
-                    self.image_url = metadata["image_url"]
-                    self.state = "REQUEST_DESCRIPTION"
-                    return {
-                        "type": "question",
-                        "response": "Thank you for the image. Could you also provide a brief description of the issue to help us analyze it better?"
-                    }
-                else:
-                    return {
-                        "type": "request_image",
-                        "response": "Please upload an image to proceed with your report."
-                    }
-
-            elif self.state == "REQUEST_DESCRIPTION":
-                # Store description and move to analysis
-                self.description = user_input
-                self.state = "PROCESSING"
-                return await self.analyze_report()
-
-        except Exception as e:
-            logging.error(f"Error processing fraud report: {str(e)}")
-            return {
-                "type": "error",
-                "response": "Sorry, there was an error processing your request. Please try again."
-            }
-
-    async def analyze_report(self) -> Dict[str, Any]:
-        """
-        Uses GPT-4o-mini to analyze the image and description and decide the appropriate action.
-        """
-        try:
-            # Generate the input for GPT-4o-mini
-            gpt_input = f"""
-You are a fraud detection assistant. Analyze the following report:
-
-1. Issue Type: {self.issue_type}
-2. Description: {self.description}
-3. Image URL: {self.image_url}
-
-Based on the description and image:
-- Determine if this issue is valid or invalid.
-- Suggest one of the following actions:
-  - "Refund" if the issue is valid and warrants a refund.
-  - "Decline" if the issue is invalid or unverifiable.
-  - "Escalate to Human-Agent" if more detailed human review is required.
-
-Respond with a JSON object in the following format:
-{{
-  "decision": "<Refund|Decline|Escalate to Human-Agent>",
-  "reason": "<Brief reason for the decision>"
-}}
-            """
-
-            # Call GPT-4o-mini for decision-making
-            gpt_response = await self.llm.agenerate([gpt_input])
-            decision_data = json.loads(gpt_response.generations[0].text.strip())
-
-            # Extract the decision and reason
-            decision = decision_data.get("decision")
-            reason = decision_data.get("reason", "No specific reason provided.")
-
-            if decision == "Refund":
-                return {
-                    "type": "resolution",
-                    "action": "Refund",
-                    "response": f"Decision: Refund. {reason}"
-                }
-            elif decision == "Decline":
-                return {
-                    "type": "resolution",
-                    "action": "Decline",
-                    "response": f"Decision: Decline. {reason}"
-                }
-            elif decision == "Escalate to Human-Agent":
-                return {
-                    "type": "resolution",
-                    "action": "Escalate to Human-Agent",
-                    "response": f"Decision: Escalate to Human-Agent. {reason}"
-                }
-            else:
-                return {
-                    "type": "error",
-                    "response": "An unexpected decision was returned. Please try again."
-                }
-
-        except Exception as e:
-            logging.error(f"Error analyzing report with GPT-4o-mini: {str(e)}")
-            return {
-                "type": "error",
-                "response": "An error occurred during analysis. Please try again later."
-            }
 
 class RecommendationAgent:
     def __init__(self, llm, memory):
@@ -249,72 +87,55 @@ class RecommendationAgent:
             self.recommendation_prompt | self.llm | StrOutputParser()
         )
 
-    async def chat(self, user_input: str) -> Dict[str, Any]:
+    async def chat(self, user_input: str):
+        if user_input.lower() == "quit":
+            self.reset_state()
+            return {"type": "system", "response": "Conversation reset."}
 
-        try:
-            # Handle "quit" command
-            if user_input.lower() == "quit":
-                self.reset_state()
-                return {"type": "system", "response": "Conversation reset. Feel free to start over."}
+        if self.is_out_of_context(user_input):
+            self.out_of_context_count += 1
+            if self.out_of_context_count == 1:
+                response = "I'm here to help you with book recommendations and information about books. Please ask something related to books."
+            elif self.out_of_context_count == 2:
+                response = "Remember, I’m your book assistant. How can I assist you with book recommendations or book-related information?"
+            else:
+                response = "It seems we're off track. Let's get back to discussing books! Please ask me anything about book recommendations or book-related topics."
+            return {"type": "system", "response": response}
 
-            # Handle out-of-context user inputs
-            if self.is_out_of_context(user_input):
-                self.out_of_context_count += 1
-                if self.out_of_context_count == 1:
-                    response = "I'm here to assist with book recommendations and related information. Please ask about books."
-                elif self.out_of_context_count == 2:
-                    response = "I specialize in helping with books. Let me know how I can assist you with recommendations or book-related queries."
-                else:
-                    response = "It seems we are off track. Let's refocus on books! How can I assist you today?"
-                return {"type": "system", "response": response}
+        self.out_of_context_count = 0
 
-            # Reset out-of-context counter
-            self.out_of_context_count = 0
+        feedback_keywords = [
+            "don't recommend", "don't like", "didn't like", "not good",
+            "bad recommendations", "poor suggestions", "stop recommendations"
+        ]
+        if self.recommendation_provided and any(phrase in user_input.lower() for phrase in feedback_keywords):
+            self.recommendation_provided = False
+            self.ready_for_recommendations = False
+            self.question_count = max(2, self.question_count)  # Reset to ask at least 2 more questions for clarity
 
-            # Handle user feedback on recommendations
-            feedback_keywords = [
-                "don't recommend", "don't like", "didn't like", "not good",
-                "bad recommendations", "poor suggestions", "stop recommendations"
-            ]
-            if self.recommendation_provided and any(phrase in user_input.lower() for phrase in feedback_keywords):
-                self.recommendation_provided = False
-                self.ready_for_recommendations = False
-                self.question_count = max(2, self.question_count)  # Reset question count
-
-                response = await self.conversation.ainvoke({
-                    "input": "It seems you weren't satisfied with the previous recommendations. Could you share more about your preferences (genres, authors, or themes) to improve my suggestions?"
-                })
-                self.memory.chat_memory.add_user_message(user_input)
-                self.memory.chat_memory.add_ai_message(response)
-                return {"type": "question", "response": response}
-
-            # Regular conversation flow
-            response = await self.conversation.ainvoke({"input": user_input})
+            response = await self.conversation.ainvoke({
+                "input": f"It seems you weren't satisfied with the previous recommendations. Could you tell me more about your preferences or specific genres, authors, or themes you're interested in? This will help me improve my suggestions."
+            })
             self.memory.chat_memory.add_user_message(user_input)
             self.memory.chat_memory.add_ai_message(response)
-
-            # Check if ready for recommendations
-            if self.check_readiness(response):
-                self.ready_for_recommendations = True
-                recommendations = await self.recommend_books()
-                self.recommendation_provided = True
-                return {"type": "recommendation", "response": recommendations}
-
-            # Increment question count for building context
-            if "?" in response and not self.ready_for_recommendations:
-                self.question_count += 1
-
             return {"type": "question", "response": response}
 
-        except Exception as e:
-            # Log the exception and return a user-friendly error message
-            logging.error(f"An error occurred during chat processing: {str(e)}")
-            logging.error(traceback.format_exc())
-            return {
-                "type": "error",
-                "response": "I'm sorry, something went wrong while process"
-            }
+        # Continue with regular conversation flow if no feedback or out-of-context issue is detected
+        response = await self.conversation.ainvoke({"input": user_input})
+        self.memory.chat_memory.add_user_message(user_input)
+        self.memory.chat_memory.add_ai_message(response)
 
+        if self.check_readiness(response):
+            self.ready_for_recommendations = True
+            recommendations = await self.recommend_books()
+            self.recommendation_provided = True
+            return {"type": "recommendation", "response": recommendations}
+
+        # Increment question count for building context
+        if "?" in response and not self.ready_for_recommendations:
+            self.question_count += 1
+
+        return {"type": "question", "response": response}
 
     def check_readiness(self, response: str) -> bool:
         """
@@ -511,6 +332,7 @@ class OrderPlacementAgent:
             ):
                 return {"type": "error", "response": "CVV must be 3 digits."}
 
+            # Extract user_id (it should match an existing user_id in user_preferences)
             user_id = user_details.get("user_id")
             if not user_id:
                 return {
@@ -595,67 +417,92 @@ class OrderQueryAgent:
         self.state = "INIT"
         self.user_id = None
 
-    async def process_query(self, user_input: str, user_id: Any) -> Dict[str, Any]:
-        # Log the received user_id for debugging
-        logging.info(f"Received user_id: {user_id}, type: {type(user_id)}")
+    async def process_query(self, user_input: str, user_id: int) -> Dict[str, Any]:
+        """Process user queries about orders"""
+        self.user_id = user_id
 
-        # Ensure user_id is always treated as a string
-        if not isinstance(user_id, str):
-            logging.warning(f"Expected user_id as string but got {type(user_id)}. Converting to string.")
-            user_id = str(user_id)
+        # Check if metadata is present in the input (for direct order detail requests)
+        if isinstance(user_input, dict) and user_input.get('metadata', {}).get('type') == 'order_details':
+            order_id = user_input['metadata'].get('order_id')
+            if order_id:
+                order_details = Order.get_order_details(order_id, user_id)
+                if order_details:
+                    # Format the order details to match the OrderInfoCard expectations
+                    formatted_details = {
+                        "order_id": order_details["order_id"],
+                        "total_cost": str(sum(item["subtotal"] for item in order_details["items"])),
+                        "order_placed_on": order_details["purchase_date"],
+                        "expected_delivery": order_details["expected_delivery"],
+                        "status": "Delivered" if datetime.now() > datetime.strptime(order_details["expected_delivery"],
+                                                                                    "%Y-%m-%d") else "In Transit",
+                        "message": f"Order details retrieved successfully.",
+                        "shipping_address": order_details["shipping_address"],
+                        "items": order_details["items"]
+                    }
+                    return {
+                        "type": "order_info",  # Changed this from order_details to order_info
+                        "response": formatted_details
+                    }
+                return {
+                    "type": "error",
+                    "response": "Order not found or unauthorized access."
+                }
 
-        self.user_id = user_id  # Store the user_id for potential future use
-        logging.info(f"Processing query for user_id: {user_id}, input: {user_input}")
+        # Handle text-based queries
+        if isinstance(user_input, str):
+            # Check if input contains an order ID
+            if "order" in user_input.lower() and any(char.isdigit() for char in user_input):
+                order_id = self.extract_order_id(user_input)
+                if order_id:
+                    order_details = Order.get_order_details(order_id, user_id)
+                    if order_details:
+                        formatted_details = {
+                            "order_id": order_details["order_id"],
+                            "total_cost": str(sum(item["subtotal"] for item in order_details["items"])),
+                            "order_placed_on": order_details["purchase_date"],
+                            "expected_delivery": order_details["expected_delivery"],
+                            "status": "Delivered" if datetime.now() > datetime.strptime(
+                                order_details["expected_delivery"], "%Y-%m-%d") else "In Transit",
+                            "message": f"Order details retrieved successfully.",
+                            "shipping_address": order_details["shipping_address"],
+                            "items": order_details["items"]
+                        }
+                        return {
+                            "type": "order_info",  # Changed this from order_details to order_info
+                            "response": formatted_details
+                        }
+                    return {
+                        "type": "error",
+                        "response": "Order not found or unauthorized access."
+                    }
 
-        # Check if the user is asking about order history
-        if any(keyword in user_input.lower() for keyword in ["orders", "history", "purchases"]):
-            try:
-                logging.info(f"User {user_id} requested order history")
-
-                # Fetch orders for the user
-                orders = Order.get_user_orders(user_id=user_id)
-                logging.info(f"Orders retrieved for user_id {user_id}: {orders}")
-
-                # Return the orders if they exist
+            # If user asks about order history
+            if any(keyword in user_input.lower() for keyword in ["orders", "history", "purchases"]):
+                orders = Order.get_user_orders(user_id)
                 if orders:
-                    return {"type": "order_list", "response": orders}
+                    return {
+                        "type": "order_list",
+                        "response": orders
+                    }
+                return {
+                    "type": "error",
+                    "response": "No orders found."
+                }
 
-                # Return an error if no orders are found
-                return {"type": "error", "response": "No orders found."}
-            except Exception as e:
-                # Log any errors that occur during order retrieval
-                logging.error(f"Error fetching order history for user_id {user_id}: {e}")
-                return {"type": "error", "response": "An error occurred while fetching your order history."}
-
-        # Handle cases where the user's input is unclear
         return {
             "type": "clarification",
             "response": "Would you like to see your order history or check a specific order? Please provide more details."
         }
 
-
     def extract_order_id(self, text: str) -> str:
         """Extract order ID from user input"""
         import re
+        # Look for UUID pattern
         uuid_pattern = r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
         uuid_match = re.search(uuid_pattern, text, re.IGNORECASE)
         if uuid_match:
             return uuid_match.group(0)
         return None
-
-    def format_order_details(self, order_details: Dict[str, Any]) -> Dict[str, Any]:
-        """Format order details for response"""
-        return {
-            "order_id": order_details["order_id"],
-            "total_cost": str(sum(item["subtotal"] for item in order_details["items"])),
-            "order_placed_on": order_details["purchase_date"],
-            "expected_delivery": order_details["expected_shipping_date"],
-            "status": "Delivered" if datetime.now() > datetime.strptime(order_details["expected_delivery"], "%Y-%m-%d") else "In Transit",
-            "message": "Order details retrieved successfully.",
-            "shipping_address": order_details["shipping_address"],
-            "items": order_details["items"]
-        }
-
 
 class ChatbotService:
     def __init__(self):
@@ -664,18 +511,14 @@ class ChatbotService:
         self.recommendation_agent = RecommendationAgent(self.llm, self.memory)
         self.order_placement_agent = OrderPlacementAgent(self.llm)
         self.order_query_agent = OrderQueryAgent(self.llm)
-        self.fraud_transaction_agent = FraudTransactionAgent(self.llm)
         self.current_agent = "recommendation"
         self.greeting_message = "Welcome! I'm BookWorm, your virtual assistant. I'm here to help you browse and find the perfect book for your collection. Ready to start exploring?"
         self.first_interaction = True
 
     async def chat(self, user_input: dict):
-        """
-        Main chat method that dynamically routes user queries to the appropriate agent
-        based on the intent classification.
-        """
+        # Handle different types of input (string or dict with metadata)
         input_message = user_input.get('message') if isinstance(user_input, dict) else user_input
-        metadata = user_input.get('metadata') if isinstance(user_input, dict) else {}
+        metadata = user_input.get('metadata') if isinstance(user_input, dict) else None
 
         if self.first_interaction and not metadata:
             self.first_interaction = False
@@ -685,80 +528,35 @@ class ChatbotService:
             if input_message.lower() == "clear":
                 self.reset_first_interaction()
                 self.memory.clear()
-                return {"type": "system", "response": "How can I assist you today?"}
+                return {"type": "system", "response": "How can I assist you with books today?"}
 
-            # Classify the user's intent
-            intent = self.classify_intent(input_message)
+            if input_message.lower() == "hi" and not self.first_interaction:
+                return {
+                    "type": "question",
+                    "response": "What genres or themes do you typically enjoy reading?",
+                }
 
-            try:
-                if intent == "fraud":
-                    # Route to FraudTransactionAgent
-                    return await self.fraud_transaction_agent.process_fraud_report(input_message, metadata)
-
-                elif intent == "order":
-                    # Route to OrderQueryAgent
-                    # Get the user's ID dynamically from metadata or session
-                    user_id = await self.get_user_id_from_metadata(metadata)
-                    if not user_id:
-                        return {"type": "error", "response": "Please log in to view or manage your orders."}
-                    return await self.order_query_agent.process_query(input_message, user_id)
-
-                elif intent == "recommendation":
-                    # Route to RecommendationAgent
-                    return await self.recommendation_agent.chat(input_message)
-
-                else:
-                    # Handle unknown or unclear intents
-                    return {
-                        "type": "clarification",
-                        "response": "I'm sorry, I didn't understand your request. Could you please clarify?"
-                    }
-
-            except Exception as e:
-                # Handle any errors during routing or processing
-                logging.error(f"Error processing chat request: {str(e)}")
-                return {"type": "error", "response": "Sorry, something went wrong while processing your request."}
-
-        else:
-            # Handle invalid input
-            return {"type": "error", "response": "Invalid input. Please provide a valid message."}
-
-    # Add the helper method for intent classification
-    def classify_intent(self, user_input: str) -> str:
-        
-        # Keywords for fraud-related queries
-        fraud_keywords = ["fraud", "report fraud", "fraudulent", "unauthorized", "unknown charge", "damaged", "broken", "shipping box"]
+        # Detect if the query is order-related
         order_keywords = ["order", "purchase", "bought", "delivery", "shipping", "track"]
-        recommendation_keywords = ["recommend", "suggest", "book", "read", "genre", "theme"]
+        if ((isinstance(input_message, str) and any(keyword in input_message.lower() for keyword in order_keywords))
+            or (metadata and metadata.get('type') == 'order_info')):
+            if not 1:  # Replace with actual user authentication check
+                return {
+                    "type": "error",
+                    "response": "Please log in to view your orders."
+                }
+            return await self.order_query_agent.process_query(user_input, 1)  # Pass the entire input to handle metadata
 
-        user_input_lower = user_input.lower()
-
-        if any(keyword in user_input_lower for keyword in fraud_keywords):
-            return "fraud"
-        elif any(keyword in user_input_lower for keyword in order_keywords):
-            return "order"
-        elif any(keyword in user_input_lower for keyword in recommendation_keywords):
-            return "recommendation"
-        else:
-            return "unknown"
-
-
-    # Add the helper method to get the user ID from metadata or session
-    async def get_user_id_from_metadata(self, metadata: dict) -> str:
-        """
-        Retrieve the user ID from metadata or session.
-        """
-        try:
-            from fastapi import Request
-            request: Request = metadata.get('request')
-            session = request.session if request else None
-            if session:
-                return get_user_id_from_session(session)
-        except ValueError as e:
-            logging.error(f"Error retrieving user ID: {str(e)}")
-            return None
-
-
+        if self.current_agent == "recommendation":
+            if not self.memory.chat_memory.messages:
+                self.memory.chat_memory.add_ai_message(self.greeting_message)
+            response = await self.recommendation_agent.chat(input_message)
+            return response
+        elif self.current_agent == "order_placement":
+            response = await self.order_placement_agent.process_order(user_input)
+            if response["type"] == "order_confirmation" or response["type"] == "error":
+                self.current_agent = "recommendation"
+            return response
 
     def reset_first_interaction(self):
         self.first_interaction = True
