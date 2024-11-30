@@ -60,13 +60,20 @@ async def save_preferences(preferences: UserPreferencesInput, db: Session = Depe
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/preferences/{user_id}")
-async def get_user_preferences_endpoint(user_id: str, db: Session = Depends(get_db)):
+@router.post("/get-preferences")
+async def get_user_preferences_endpoint(request: dict, db: Session = Depends(get_db)):
+    print("hi")
     try:
+        user_id = request.get("userId")
+        if not user_id:
+            raise HTTPException(status_code=400, detail="userId is required")
+
         preferences = await get_user_preferences(user_id, db)
+
+        # return preferences
         if preferences:
-            return preferences
+           return preferences
         else:
-            raise HTTPException(status_code=404, detail="User preferences not found")
+           raise HTTPException(status_code=404, detail="User preferences not found")
     except Exception as e:
         raise HTTPException(status_code=500, detail="An error occurred while fetching user preferences")

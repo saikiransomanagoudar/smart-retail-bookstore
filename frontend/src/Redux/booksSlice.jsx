@@ -6,6 +6,7 @@ const booksSlice = createSlice({
   initialState: {
     trendingBooks: [],
     recommendedBooks: [],
+    preferredGenres: [], 
   },
   reducers: {
     setTrendingBooks: (state, action) => {
@@ -14,8 +15,11 @@ const booksSlice = createSlice({
     setRecommendedBooks: (state, action) => {
       state.recommendedBooks = action.payload;
     },
+    setPreferredGenres: (state, action) => {
+      state.preferredGenres = action.payload; // Update preferredGenres
+    },
   },
 });
 
-export const { setTrendingBooks, setRecommendedBooks } = booksSlice.actions;
+export const { setTrendingBooks, setRecommendedBooks, setPreferredGenres  } = booksSlice.actions;
 export default booksSlice.reducer;
