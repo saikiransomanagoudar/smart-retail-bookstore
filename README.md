@@ -2,7 +2,7 @@
 
 An AI-powered bookstore application that leverages advanced language models and multi-agent systems to provide personalized book recommendations and intelligent shopping experiences.
 
-![Smart Retail Bookstore Architecture](https://via.placeholder.com/800x600/1f2937/ffffff?text=Smart+Retail+Bookstore+Architecture)
+![Smart Retail Bookstore Architecture](./architecture-diagram.png)
 
 ## System Overview
 
