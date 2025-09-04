@@ -48,7 +48,6 @@ class OperatorAgent:
             logging.error("OPENAI_API_KEY is not found in environment variables.")
             raise ValueError("OPENAI_API_KEY not found. Please set it in your .env file.")
 
-        logging.info("Initializing ChatOpenAI with provided API key.")
         return ChatOpenAI(
             model="gpt-4o-mini",
             temperature=0.7,
@@ -60,17 +59,7 @@ class OperatorAgent:
         Register agents with the OperatorAgent for intent-based routing.
         """
         self.agent_registry = registry
-        logging.info(f"Agent registry set with {len(registry)} agents.")
 
-    def log_handshake_step(self, current_node: str, message: str, next_node: str):
-        """
-        Log the interaction between nodes for debugging and clarity.
-        """
-        print(f"\n{'='*50}")
-        print(f"Current Node: {current_node}")
-        print(f"Message Processed: {message}")
-        print(f"Next Node: {next_node}")
-        print(f"{'='*50}")
 
     def determine_intent(self, message: str) -> List[str]:
         """
@@ -84,24 +73,18 @@ class OperatorAgent:
             f"Return a comma-separated list of intents."
         )
 
-        logging.info(f"Sending prompt to LLM for intent determination: {prompt}")
         try:
             # Use the updated `invoke` method
             response = self.llm.invoke(prompt)
-            logging.info(f"LLM response: {response}")
-            predicted_intents = [intent.strip().lower() for intent in response.split(",")]
+            # Extract content from AIMessage object
+            response_content = response.content if hasattr(response, 'content') else str(response)
+            predicted_intents = [intent.strip().lower() for intent in response_content.split(",")]
             return predicted_intents
         except Exception as e:
             logging.error(f"Error during intent determination: {e}")
             return ["out_of_context"]
 
 
-    def serialize_message(message):
-        if isinstance(message, AIMessage):
-            return {"type": "ai", "content": message.content}
-        elif isinstance(message, HumanMessage):
-            return {"type": "human", "content": message.content}
-        return {"type": "unknown", "content": str(message)}
 
     async def on_message(self, message: str) -> Dict:
         """
@@ -109,7 +92,6 @@ class OperatorAgent:
         """
         # Determine intents
         intents = self.determine_intent(message)
-        logging.info(f"Determined intents: {intents}")
 
         # Intent to agent mapping
         intent_to_agent_map = {
@@ -129,10 +111,8 @@ class OperatorAgent:
             fallback_response = (
                 "I'm here to assist with books, orders, or related queries. Please ask a relevant question!"
             )
-            self.log_handshake_step(self.name, fallback_response, "END")
             return {"next_node": "END", "messages": [AIMessage(content=fallback_response)]}
 
-        # Collect responses from triggered agents
         combined_responses = []
         response_set = set()
 
@@ -142,7 +122,6 @@ class OperatorAgent:
                 continue
 
             agent = self.agent_registry[agent_key]
-            logging.info(f"Routing to agent: {agent_key}")
 
             if asyncio.iscoroutinefunction(agent.on_message):
                 agent_response = await agent.on_message(message)
@@ -154,10 +133,17 @@ class OperatorAgent:
                     if isinstance(msg, AIMessage) and msg.content not in response_set:
                         combined_responses.append(serialize_message(msg))
                         response_set.add(msg.content)
+                    elif isinstance(msg, dict) and msg.get("content") and msg.get("content") not in response_set:
+                        # Handle already-serialized messages
+                        combined_responses.append(msg)
+                        response_set.add(msg.get("content"))
+            
+            if "recommendations" in agent_response:
+                result = {"next_node": "END", "messages": combined_responses, "recommendations": agent_response["recommendations"]}
+                return result
 
-        # Combine responses
         curated_response = " ".join(msg["content"] for msg in combined_responses)
-        self.memory.chat_memory.append(HumanMessage(content=curated_response))
+        self.memory.chat_memory.add_message(HumanMessage(content=curated_response))
         return {"next_node": "END", "messages": combined_responses}
 
     def __call__(self, input: str) -> Dict:
