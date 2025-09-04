@@ -81,21 +81,21 @@ const Navbar = () => {
   const searchData = [...trendingBooks, ...recommendedBooks];
   const links = [
     { title: "Home", link: "/", icon: null },
-    { title: "Categories", link: "/categories", icon: null },
-    ...(isSignedIn
-      ? [
-          {
-            title: "Cart",
-            link: "/cart",
-            icon: <ShoppingCart className='w-5 h-5' />,
-          },
-          {
-            title: "Wishlist",
-            link: "/wishlist",
-            icon: <Heart className='w-5 h-5' />,
-          },
-        ]
-      : []),
+    // { title: "Categories", link: "/categories", icon: null },
+    // ...(isSignedIn
+    //   ? [
+    //       {
+    //         title: "Cart",
+    //         link: "/cart",
+    //         icon: <ShoppingCart className='w-5 h-5' />,
+    //       },
+    //       {
+    //         title: "Wishlist",
+    //         link: "/wishlist",
+    //         icon: <Heart className='w-5 h-5' />,
+    //       },
+    //     ]
+    //   : []),
   ];
   // Function to handle search input
   const handleSearchChange = (event) => {
@@ -259,6 +259,115 @@ const Navbar = () => {
           </button>
         </div>
       </div>
+
+      {/* Mobile Menu */}
+      {isNavOpen && (
+        <div className='md:hidden bg-zinc-900 border-t border-gray-700'>
+          <div className='px-4 pt-2 pb-3 space-y-1'>
+            {/* Mobile Search Bar */}
+            <div className='mb-4'>
+              <SearchBar
+                searchQuery={searchQuery}
+                handleSearchChange={handleSearchChange}
+                filteredBooks={filteredBooks}
+                resetSearch={resetSearch}
+              />
+            </div>
+
+            {/* Mobile Navigation Links */}
+            {links.map((item, i) => (
+              <Link
+                key={i}
+                to={item.link}
+                className='flex items-center space-x-2 px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-md transition-colors duration-200'
+                onClick={() => {
+                  setIsNavOpen(false);
+                  resetSearch();
+                }}
+              >
+                {item.icon}
+                <span>{item.title}</span>
+              </Link>
+            ))}
+
+            {/* Mobile Auth Section */}
+            {!isSignedIn ? (
+              <div className='space-y-2 pt-2 border-t border-gray-700'>
+                <Link
+                  to='/login'
+                  className='block px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-md transition-colors duration-200'
+                  onClick={() => {
+                    setIsNavOpen(false);
+                    resetSearch();
+                  }}
+                >
+                  Sign in
+                </Link>
+                <Link
+                  to='/signup'
+                  className='block px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 text-center'
+                  onClick={() => {
+                    setIsNavOpen(false);
+                    resetSearch();
+                  }}
+                >
+                  Sign up
+                </Link>
+              </div>
+            ) : (
+              <div className='space-y-2 pt-2 border-t border-gray-700'>
+                <div className='flex items-center space-x-3 px-3 py-2'>
+                  <img
+                    src={
+                      user?.imageUrl ||
+                      "https://cdn-icons-png.flaticon.com/128/149/149071.png"
+                    }
+                    alt='profile'
+                    className='h-8 w-8 rounded-full border-2 border-blue-500'
+                  />
+                  <div>
+                    <p className='text-white font-medium'>{user?.firstName}</p>
+                    <p className='text-gray-400 text-sm'>
+                      {user?.primaryEmailAddress?.emailAddress}
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  to='/profile'
+                  className='block px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-md transition-colors duration-200'
+                  onClick={() => {
+                    setIsNavOpen(false);
+                    resetSearch();
+                  }}
+                >
+                  Profile Settings
+                </Link>
+                <Link
+                  to='/orders'
+                  className='block px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-md transition-colors duration-200'
+                  onClick={() => {
+                    setIsNavOpen(false);
+                    resetSearch();
+                  }}
+                >
+                  My Orders
+                </Link>
+                <SignOutButton>
+                  <button
+                    onClick={() => {
+                      setIsNavOpen(false);
+                      resetSearch();
+                    }}
+                    className='block w-full text-left px-3 py-2 text-red-400 hover:text-red-300 hover:bg-gray-800 rounded-md transition-colors duration-200'
+                  >
+                    Sign out
+                  </button>
+                </SignOutButton>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </nav>
   );
 };
