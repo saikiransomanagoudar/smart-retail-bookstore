@@ -15,7 +15,7 @@ class UserPreferences(Base):
     reading_level = Column(String(50))
 
 
-async def save_user_preferences(user_id: str, preferences: dict, db: Session):
+def save_user_preferences(user_id: str, preferences: dict, db: Session):
     user_preferences = db.query(UserPreferences).filter(UserPreferences.user_id == user_id).first()
 
     def list_to_string(lst: List[str]) -> str:
@@ -41,7 +41,7 @@ async def save_user_preferences(user_id: str, preferences: dict, db: Session):
     db.commit()
 
 
-async def get_user_preferences(user_id: str, db: Session) -> Optional[Dict]:
+def get_user_preferences(user_id: str, db: Session) -> Optional[Dict]:
     try:
         user_preferences = db.query(UserPreferences).filter(UserPreferences.user_id == user_id).first()
         if user_preferences:
