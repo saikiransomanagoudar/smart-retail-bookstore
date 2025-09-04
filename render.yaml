@@ -1,0 +1,28 @@
+services:
+  # Backend Web Service
+  - type: web
+    name: smart-bookstore-api
+    env: python
+    plan: free
+    buildCommand: "pip install -r backend/requirements.txt"
+    startCommand: "cd backend && uvicorn app.app:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: PROJECT_NAME
+        value: "Smart Retail Bookstore"
+      - key: PROJECT_VERSION
+        value: "1.0.0"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: smart-bookstore-db
+          property: connectionString
+      - key: OPENAI_API_KEY
+        sync: false  # Will be set manually in Render dashboard
+      - key: HARDCOVER_API_URL
+        value: "https://api.hardcover.app/v1/graphql"
+      - key: HARDCOVER_API_TOKEN
+        sync: false  # Will be set manually in Render dashboard
+
+databases:
+  # PostgreSQL Database
+  - name: smart-bookstore-db
+    plan: free
