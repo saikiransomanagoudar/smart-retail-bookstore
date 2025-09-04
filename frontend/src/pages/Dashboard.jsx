@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useUser } from "@clerk/clerk-react";
 import axios from "axios";
+import { API_ENDPOINTS } from "../config/api";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -182,7 +183,7 @@ const Dashboard = () => {
         setLoadingPopular(true);
 
         const response = await axios.get(
-          "http://localhost:8000/api/recommendations/trending-books",
+          API_ENDPOINTS.TRENDING_BOOKS,
           { signal: controller.signal }
         );
         if (isMounted) {
@@ -224,7 +225,7 @@ const Dashboard = () => {
         setLoadingRecommended(true);
 
         const response = await axios.post(
-          "http://localhost:8000/api/recommendations/initial-recommendations",
+          API_ENDPOINTS.INITIAL_RECOMMENDATIONS,
           { userId: user.id },
           { signal: controller.signal }
         );

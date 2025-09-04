@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useUser } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { API_ENDPOINTS } from "../../config/api";
 
 const UserPreferences = () => {
   const { user } = useUser();
@@ -62,7 +63,7 @@ const UserPreferences = () => {
     setIsSubmitting(true);
 
     try {
-      await axios.post("http://localhost:8000/api/recommendations/preferences", {
+      await axios.post(API_ENDPOINTS.USER_PREFERENCES, {
         user_id: user.id,
         ...formData
       });

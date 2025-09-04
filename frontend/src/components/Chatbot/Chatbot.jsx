@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faRobot } from "@fortawesome/free-solid-svg-icons";
 import { useUser } from "@clerk/clerk-react";
 import axios from "axios";
+import { API_ENDPOINTS } from "../../config/api";
 
 const BookCard = ({ book, onAddToCart }) => (
   <div className="flex bg-white rounded-lg shadow-md overflow-hidden mb-4 hover:shadow-lg transition-shadow duration-300">
@@ -571,7 +572,7 @@ const Chatbot = () => {
     setIsLoading(true);
     try {
       const response = await axios.post(
-        "http://localhost:8000/api/chatbot/chat",
+        API_ENDPOINTS.CHATBOT_CHAT,
         {
           message: `view order details ${orderId}`,
           metadata: {
@@ -604,7 +605,7 @@ const Chatbot = () => {
     setIsLoading(true);
     try {
       const response = await axios.post(
-        "http://localhost:8000/api/chatbot/chat",
+        API_ENDPOINTS.CHATBOT_CHAT,
         { message }
       );
   
@@ -783,7 +784,7 @@ const Chatbot = () => {
       };
 
       const response = await axios.post(
-        "http://localhost:8000/api/chatbot/place-order",
+        API_ENDPOINTS.CHATBOT_PLACE_ORDER,
         payload
       );
 

@@ -6,7 +6,26 @@ export default defineConfig({
   plugins: [react()],
   root: 'frontend',
   publicDir: 'public',
+  base: '/',
   build: {
-    outDir: '../dist'
+    outDir: '../dist',
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          router: ['react-router-dom'],
+          ui: ['@clerk/clerk-react', 'react-icons']
+        }
+      }
+    }
+  },
+  server: {
+    port: 3000,
+    host: true
+  },
+  preview: {
+    port: 3000,
+    host: true
   }
 })
