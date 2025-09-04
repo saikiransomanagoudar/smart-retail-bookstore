@@ -13,6 +13,20 @@ class OrderQueryAgent:
         self.state = "INIT"
         self.user_id = None
 
+    async def on_message(self, user_input: str) -> Dict[str, Any]:
+        """Handle messages from the operator agent"""
+        # For now, use a default user_id since we don't have user context
+        # In a real implementation, this should come from the session/auth
+        default_user_id = 1  # You may want to extract this from context
+        
+        result = await self.process_query(user_input, default_user_id)
+        
+        # Convert to messages format expected by operator agent
+        from langchain_core.messages import AIMessage
+        return {
+            "messages": [AIMessage(content=str(result.get("response", "No response available")))]
+        }
+
     async def process_query(self, user_input: str, user_id: int) -> Dict[str, Any]:
         """Process user queries about orders"""
         self.user_id = user_id
