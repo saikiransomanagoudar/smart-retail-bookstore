@@ -10,7 +10,7 @@ from typing import List, Dict
 import re
 from dotenv import load_dotenv
 from langchain.prompts import PromptTemplate
-from langchain_openai import OpenAI
+from langchain.llms import OpenAI
 
 dotenv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', '.env'))
 load_dotenv(dotenv_path)

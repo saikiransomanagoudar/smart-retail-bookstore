@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 from typing import Dict, Any, List
 from langchain.llms import OpenAI
-from langchain_openai import ChatOpenAI
+from langchain.chat_models import ChatOpenAI
 from langchain.memory import ConversationBufferMemory
 from langgraph.graph import StateGraph, START, END
 from langchain_core.messages import HumanMessage, AIMessage
