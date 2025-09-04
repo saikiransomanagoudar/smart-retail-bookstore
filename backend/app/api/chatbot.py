@@ -1,3 +1,4 @@
+
 import logging
 from fastapi import APIRouter, Request
 import asyncio
@@ -14,7 +15,6 @@ chatbot_service = ChatbotService()
 @router.post("/chat")
 async def chat(request: Request):
     data = await request.json()
-    logging.info(f"Received request data: {data}")
     user_input = data.get("message")
 
     if not user_input:
@@ -29,14 +29,41 @@ async def chat(request: Request):
         else:
             response = chatbot_service.operator_agent.on_message(user_input)
 
-        # Serialize response messages
-        response["messages"] = [
-            serialize_message(msg) for msg in response["messages"]
-        ]
-        logging.info(f"Chatbot response: {response}")
-        return JSONResponse(content=response)
+        
+        if "recommendations" in response:
+            recommendations = response["recommendations"]
+            formatted_response = {
+                "type": "recommendation",
+                "response": recommendations,
+                "next_node": response.get("next_node", "END"),
+                "messages": [serialize_message(msg) for msg in response["messages"]]
+            }
+            return JSONResponse(content=formatted_response)
+        
+        if "messages" in response and response["messages"]:
+            first_message = response["messages"][0]
+            if isinstance(first_message, dict):
+                message_content = first_message.get("content", "")
+            else:
+                serialized = serialize_message(first_message)
+                message_content = serialized.get("content", "")
+            
+            formatted_response = {
+                "type": "response",  # Default type
+                "response": message_content,
+                "next_node": response.get("next_node", "END"),
+                "messages": [serialize_message(msg) for msg in response["messages"]]
+            }
+        else:
+            formatted_response = {
+                "type": "error",
+                "response": "No response generated",
+                "messages": []
+            }
+        
+        return JSONResponse(content=formatted_response)
     except Exception as e:
-        logging.error(f"Error in /chat endpoint: {str(e)}")
+        pass
         return JSONResponse(content={
             "type": "error",
             "response": f"An error occurred: {str(e)}"
@@ -45,11 +72,7 @@ async def chat(request: Request):
 
 @router.post("/place-order")
 async def place_order(request: Request):
-    """
-    Endpoint to handle order placement.
-    """
     data = await request.json()
-    logging.info(f"Received order placement data: {data}")
     order_data = data.get("order_data")
     user_details = data.get("user_details")
 
@@ -64,12 +87,10 @@ async def place_order(request: Request):
             "order_data": order_data,
             "user_details": user_details
         }
-        # Use ChatbotService's place_order method
         response = chatbot_service.place_order(combined_data)
-        logging.info(f"Order placement response: {response}")
         return JSONResponse(content=response)
     except Exception as e:
-        logging.error(f"Error in /place-order endpoint: {str(e)}")
+        pass
         return JSONResponse(content={
             "type": "error",
             "response": f"An error occurred while placing the order: {str(e)}"
@@ -77,7 +98,4 @@ async def place_order(request: Request):
 
 @router.get("/health")
 async def health_check():
-    """
-    Health check endpoint.
-    """
     return JSONResponse(content={"status": "healthy"})
