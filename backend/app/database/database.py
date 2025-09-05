@@ -35,4 +35,11 @@ def get_db():
 
 def create_tables():
     from app.models.user import UserPreferences
+    from app.models.orders import Order
+
+    try:
+        UserPreferences.__table__.drop(engine, checkfirst=True)
+    except Exception:
+        pass
+    
     Base.metadata.create_all(bind=engine)
