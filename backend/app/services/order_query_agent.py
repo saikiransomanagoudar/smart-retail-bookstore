@@ -5,7 +5,7 @@ from datetime import datetime
 import re
 from typing import Dict, Any
 
-from backend.app.models.orders import Order
+from app.models.orders import Order
 
 class OrderQueryAgent:
     def __init__(self, llm):

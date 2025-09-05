@@ -12,12 +12,12 @@ from pydantic import BaseModel
 import operator
 import logging
 
-from backend.app.services.user_proxy_agent import UserProxyAgent
-from backend.app.services.operator_agent import OperatorAgent
-from backend.app.services.recommendation_agent import RecommendationAgent
-from backend.app.services.order_placement_agent import OrderPlacementAgent
-from backend.app.services.order_query_agent import OrderQueryAgent
-from backend.app.services.fraudulent_transaction_agent import FraudulentTransactionAgent
+from app.services.user_proxy_agent import UserProxyAgent
+from app.services.operator_agent import OperatorAgent
+from app.services.recommendation_agent import RecommendationAgent
+from app.services.order_placement_agent import OrderPlacementAgent
+from app.services.order_query_agent import OrderQueryAgent
+from app.services.fraudulent_transaction_agent import FraudulentTransactionAgent
 
 load_dotenv()
 

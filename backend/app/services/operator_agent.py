@@ -9,7 +9,7 @@ from langchain_community.llms import OpenAI
 from langchain_core.messages import HumanMessage, AIMessage
 from langgraph.graph import StateGraph, START, END
 from langchain.memory import ConversationBufferMemory
-from backend.app.services.utils import serialize_message
+from app.services.utils import serialize_message
 import logging
 import os
 import asyncio

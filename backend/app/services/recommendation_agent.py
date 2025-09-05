@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.INFO)
 def normalize_title(title: str) -> str:
     return re.split(r":|–|-", title)[-1].strip()
 
-from backend.app.services.graphql_service import graphql_service
+from app.services.graphql_service import graphql_service
 
 class RecommendationAgent:
     def __init__(self, llm, memory):
@@ -305,7 +305,7 @@ class RecommendationAgent:
                 else:
 
             if not processed_books:
-                from backend.app.services.recommendation_service import get_trending_books, get_genre_specific_books
+                from app.services.recommendation_service import get_trending_books, get_genre_specific_books
                 try:
                     user_request = self.current_user_input.lower() if self.current_user_input else ""
                     

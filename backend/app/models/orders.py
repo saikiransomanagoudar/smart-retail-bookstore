@@ -1,7 +1,7 @@
 import traceback
 
 from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, select, and_
-from backend.app.database.database import Base, SessionLocal
+from app.database.database import Base, SessionLocal
 from datetime import datetime, timedelta
 import logging
 from typing import Dict, Any, List, Optional

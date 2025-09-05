@@ -1,6 +1,6 @@
 # models.py
 from sqlalchemy.orm import Session
-from backend.app.database.database import Base
+from app.database.database import Base
 from sqlalchemy import Column, String, Text
 from typing import List, Optional, Dict
 

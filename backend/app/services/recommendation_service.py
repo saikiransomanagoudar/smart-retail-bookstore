@@ -4,8 +4,8 @@ import random
 import json
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from backend.app.models.user import get_user_preferences
-from backend.app.services.graphql_service import graphql_service
+from app.models.user import get_user_preferences
+from app.services.graphql_service import graphql_service
 from typing import List, Dict
 import re
 from dotenv import load_dotenv

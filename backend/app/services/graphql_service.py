@@ -1,7 +1,7 @@
 from typing import List, Dict
 from gql import gql, Client
 from gql.transport.aiohttp import AIOHTTPTransport
-from backend.app.core.config import settings
+from app.core.config import settings
 import asyncio
 
 

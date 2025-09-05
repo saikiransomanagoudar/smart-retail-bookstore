@@ -6,8 +6,8 @@ from datetime import datetime, timedelta
 from typing import Any, Dict
 from sqlalchemy.exc import SQLAlchemyError
 
-from backend.app.database.database import SessionLocal
-from backend.app.models.orders import Order
+from app.database.database import SessionLocal
+from app.models.orders import Order
 
 class OrderPlacementAgent:
     def __init__(self, llm):
@@ -17,7 +17,7 @@ class OrderPlacementAgent:
         self.cart_items = []
 
     async def process_order(self, user_input: Any = None):
-        from backend.app.database.database import SessionLocal
+        from app.database.database import SessionLocal
         try:
             logging.info(f"Full input data received: {user_input}")
 
