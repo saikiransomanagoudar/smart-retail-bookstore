@@ -127,7 +127,7 @@ async def get_recommendations(user_id: str, db: Session) -> List[Dict]:
             return []
     
     try:
-    recommended_books = generate_llm_recommendations(user_preferences)
+        recommended_books = generate_llm_recommendations(user_preferences)
         if not recommended_books:
             import random
             random_ids = random.sample(range(1, 2000), 20)
