@@ -6,7 +6,7 @@ alembic==1.8.1
 psycopg2-binary==2.9.5
 python-dotenv==0.21.0
 langchain==0.0.292
-langgraph>=0.3,<0.7
+langgraph==0.2.0
 openai==0.28.1
 httpx==0.23.3
 gql==3.4.0
