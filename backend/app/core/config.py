@@ -1,6 +1,9 @@
 import os
 from dotenv import load_dotenv
-from pydantic import BaseSettings
+try:
+    from pydantic_settings import BaseSettings
+except ImportError:
+    from pydantic import BaseSettings
 
 current_dir = os.path.dirname(__file__)
 backend_root = os.path.abspath(os.path.join(current_dir, '..', '..'))
