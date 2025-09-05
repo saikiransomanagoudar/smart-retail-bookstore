@@ -1,10 +1,10 @@
 import os
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
-from backend.app.api.recommendations import router as recommendations_router
-from backend.app.api.chatbot import router as chatbot_router
-from backend.app.core.config import settings
-from backend.app.database.database import create_tables
+from app.api.recommendations import router as recommendations_router
+from app.api.chatbot import router as chatbot_router
+from app.core.config import settings
+from app.database.database import create_tables
 
 app = FastAPI(title=settings.PROJECT_NAME, version=settings.PROJECT_VERSION)
 
@@ -49,7 +49,7 @@ async def health_check():
     """Health check endpoint for monitoring."""
     try:
         # Test database connection
-        from backend.app.database.database import engine
+        from app.database.database import engine
         from sqlalchemy import text
         
         with engine.connect() as connection:

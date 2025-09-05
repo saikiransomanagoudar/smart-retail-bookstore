@@ -3,8 +3,8 @@ import logging
 from fastapi import APIRouter, Request
 import asyncio
 from fastapi.responses import JSONResponse
-from backend.app.services.chatbot_service import ChatbotService
-from backend.app.services.utils import serialize_message
+from app.services.chatbot_service import ChatbotService
+from app.services.utils import serialize_message
 from langchain_core.messages import AIMessage
 
 router = APIRouter()

@@ -3,10 +3,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import List, Optional
-from backend.app.database.database import get_db
-from backend.app.services.recommendation_service import get_recommendations
-from backend.app.services.recommendation_service import get_trending_books as get_trending_books_service
-from backend.app.models.user import save_user_preferences, get_user_preferences
+from app.database.database import get_db
+from app.services.recommendation_service import get_recommendations
+from app.services.recommendation_service import get_trending_books as get_trending_books_service
+from app.models.user import save_user_preferences, get_user_preferences
 
 router = APIRouter()
 
