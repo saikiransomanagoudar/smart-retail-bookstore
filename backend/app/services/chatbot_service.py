@@ -75,10 +75,6 @@ class ChatbotService:
         )
 
     def define_graph(self):
-        # Add special nodes first
-        self.state_graph.add_node("__start__", lambda x: x)
-        self.state_graph.add_node("__end__", lambda x: x)
-        
         # Add nodes for each agent
         self.state_graph.add_node("user_proxy_agent", self.user_proxy_agent)
         self.state_graph.add_node("operator_agent", self.operator_agent)
