@@ -44,9 +44,11 @@ def create_tables():
     # Add missing columns safely for existing tables
     try:
         with engine.connect() as conn:
-            # Check if themes_of_interest column exists, if not add it
-            result = conn.execute(text("PRAGMA table_info(user_preferences)"))
-            columns = [row[1] for row in result.fetchall()]
+            # Check if themes_of_interest column exists (PostgreSQL syntax)
+            result = conn.execute(text(
+                "SELECT column_name FROM information_schema.columns WHERE table_name = 'user_preferences'"
+            ))
+            columns = [row[0] for row in result.fetchall()]
             
             if 'themes_of_interest' not in columns:
                 conn.execute(text("ALTER TABLE user_preferences ADD COLUMN themes_of_interest TEXT"))
