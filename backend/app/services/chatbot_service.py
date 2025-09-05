@@ -7,7 +7,6 @@ from langchain.llms import OpenAI
 from langchain.chat_models import ChatOpenAI
 from langchain.memory import ConversationBufferMemory
 from langgraph.graph import StateGraph
-from langgraph.constants import START, END
 from langchain_core.messages import HumanMessage, AIMessage
 from pydantic import BaseModel
 import operator
@@ -85,17 +84,17 @@ class ChatbotService:
         self.state_graph.add_node("fraudulent_transaction_agent", self.fraudulent_transaction_agent)
 
         # Define edges
-        self.state_graph.add_edge(START, "user_proxy_agent")
+        self.state_graph.add_edge("__start__", "user_proxy_agent")
         self.state_graph.add_edge("user_proxy_agent", "operator_agent")
         self.state_graph.add_edge("operator_agent", "recommendation_agent")
         self.state_graph.add_edge("operator_agent", "order_placement_agent")
         self.state_graph.add_edge("operator_agent", "order_query_agent")
         self.state_graph.add_edge("operator_agent", "fraudulent_transaction_agent")
-        self.state_graph.add_edge("operator_agent", END)
-        self.state_graph.add_edge("recommendation_agent", END)
-        self.state_graph.add_edge("order_placement_agent", END)
-        self.state_graph.add_edge("order_query_agent", END)
-        self.state_graph.add_edge("fraudulent_transaction_agent", END)
+        self.state_graph.add_edge("operator_agent", "__end__")
+        self.state_graph.add_edge("recommendation_agent", "__end__")
+        self.state_graph.add_edge("order_placement_agent", "__end__")
+        self.state_graph.add_edge("order_query_agent", "__end__")
+        self.state_graph.add_edge("fraudulent_transaction_agent", "__end__")
 
         # Compile the graph
         self.compiled_graph = self.state_graph.compile()
