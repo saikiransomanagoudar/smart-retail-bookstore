@@ -5,8 +5,8 @@ services:
     env: python
     plan: free
     runtime: python-3.11.9
-    buildCommand: "pip install -r backend/requirements.txt"
-    startCommand: "cd backend && uvicorn app.app:app --host 0.0.0.0 --port $PORT"
+    buildCommand: "python3.11 -m pip install --break-system-packages -r backend/requirements.txt"
+    startCommand: "cd backend && /opt/render/.local/bin/uvicorn app.app:app --host 0.0.0.0 --port $PORT"
     envVars:
       - key: PROJECT_NAME
         value: "Smart Retail Bookstore"
