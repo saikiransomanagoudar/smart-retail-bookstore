@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import BookCard from "../components/Books/BookCard";
 import axios from "axios";
 import Loader from "./Loader";
+import { API_ENDPOINTS } from "../config/api";
 const AllBooks = () => {
   const [Books, setBooks] = useState();
   useEffect(() => {
     window.scrollTo(0, 0);
     const fetch = async () => {
       const response = await axios.get(
-        "http://localhost:1000/api/v1/get-all-books"
+        API_ENDPOINTS.ALL_BOOKS
       );
       setBooks(response.data.data);
     };

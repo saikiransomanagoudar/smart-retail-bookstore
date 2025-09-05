@@ -4,6 +4,7 @@ import { AiFillDelete } from "react-icons/ai";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Loader from "./Loader";
+import { API_ENDPOINTS } from "../config/api";
 const Cart = () => {
   const navigate = useNavigate();
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
@@ -22,7 +23,7 @@ const Cart = () => {
     } else {
       const fetch = async () => {
         const res = await axios.get(
-          "http://localhost:1000/api/v1/get-user-cart",
+          API_ENDPOINTS.USER_CART,
           { headers }
         );
 
@@ -44,7 +45,7 @@ const Cart = () => {
   const deletItem = async (id) => {
     try {
       const response = await axios.put(
-        `http://localhost:1000/api/v1/remove-from-cart/${id}`,
+        API_ENDPOINTS.REMOVE_FROM_CART(id),
         {},
         { headers }
       );
@@ -56,7 +57,7 @@ const Cart = () => {
   const PlaceOrder = async () => {
     try {
       const response = await axios.post(
-        `http://localhost:1000/api/v1/place-order`,
+        API_ENDPOINTS.PLACE_ORDER,
         { order: Cart },
         { headers }
       );

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import BookCard from "../Books/BookCard";
 import axios from "axios";
+import { API_ENDPOINTS } from "../../config/api";
 
 const RecommendedBooks = () => {
   const [Books, setBooks] = useState();
@@ -8,8 +9,7 @@ const RecommendedBooks = () => {
   useEffect(() => {
     const fetch = async () => {
       const response = await axios.get(
-        "http://localhost:1000/api/v1/initial-recommendations"
-        // Replace with actual API for recommended books
+        API_ENDPOINTS.INITIAL_RECOMMENDATIONS
       );
       setBooks(response.data.data);
     };

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Loader from "./Loader";
 import axios from "axios";
+import { API_ENDPOINTS } from "../config/api";
 const Settings = () => {
   const [ProfileData, setProfileData] = useState();
   const [Value, setValue] = useState({ address: "" });
@@ -16,7 +17,7 @@ const Settings = () => {
   useEffect(() => {
     const fetch = async () => {
       const response = await axios.get(
-        "http://localhost:1000/api/v1/get-user-information",
+        API_ENDPOINTS.USER_INFO,
         { headers }
       );
       setProfileData(response.data);
@@ -27,7 +28,7 @@ const Settings = () => {
 
   const updateAddress = async () => {
     const res = await axios.put(
-      "http://localhost:1000/api/v1/update-address",
+      API_ENDPOINTS.UPDATE_ADDRESS,
       Value,
       {
         headers,

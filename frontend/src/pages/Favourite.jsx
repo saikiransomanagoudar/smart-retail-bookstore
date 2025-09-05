@@ -2,6 +2,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import BookCard from "../components/Books/BookCard";
 import Loader from "./Loader";
+import { API_ENDPOINTS } from "../config/api";
 const Favourite = () => {
   const [FavBooks, setFavBooks] = useState();
   const headers = {
@@ -11,7 +12,7 @@ const Favourite = () => {
   useEffect(() => {
     const fetch = async () => {
       const res = await axios.get(
-        "http://localhost:1000/api/v1/get-favourite-books",
+        API_ENDPOINTS.FAVOURITE_BOOKS,
         { headers }
       );
 

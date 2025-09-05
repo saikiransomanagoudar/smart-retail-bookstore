@@ -6,6 +6,7 @@ import { useSelector } from "react-redux";
 import Sidebar from "../components/Profile/Sidebar";
 import Loader from "./Loader";
 import MobileBar from "../components/Profile/MobileBar";
+import { API_ENDPOINTS } from "../config/api";
 
 const Profile = () => {
   const [ProfileData, setProfileData] = useState();
@@ -22,7 +23,7 @@ const Profile = () => {
     } else {
       const fetch = async () => {
         const response = await axios.get(
-          "http://localhost:1000/api/v1/get-user-information",
+          API_ENDPOINTS.USER_INFO,
           { headers }
         );
         setProfileData(response.data);
