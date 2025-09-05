@@ -55,7 +55,7 @@ async def get_trending_book():
 @router.post("/preferences")
 async def save_preferences(preferences: UserPreferencesInput, db: Session = Depends(get_db)):
     try:
-        save_user_preferences(preferences.user_id, preferences.model_dump(), db)
+        save_user_preferences(preferences.user_id, preferences.dict(), db)
         return {"message": "Preferences saved successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
