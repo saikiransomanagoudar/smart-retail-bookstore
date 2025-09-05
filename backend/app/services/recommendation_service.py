@@ -199,7 +199,7 @@ async def get_recommendations(user_id: str, db: Session) -> List[Dict]:
             }
             processed_books.append(processed_book)
 
-    return processed_books
+        return processed_books
     except Exception as e:
         logging.error(f"Final fallback failed: {e}")
         return []
