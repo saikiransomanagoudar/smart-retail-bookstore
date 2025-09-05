@@ -303,6 +303,8 @@ class RecommendationAgent:
                     self.recommended_books.add(normalized_title)
                     processed_books.append(processed_book)
                 else:
+                    # Skip books that don't match criteria
+                    pass
 
             if not processed_books:
                 from app.services.recommendation_service import get_trending_books, get_genre_specific_books
