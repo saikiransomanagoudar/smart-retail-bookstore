@@ -12,7 +12,8 @@ app = FastAPI(title=settings.PROJECT_NAME, version=settings.PROJECT_VERSION)
 allowed_origins = [
     "http://localhost:3000",  # Local development
     "http://localhost:5173",  # Vite dev server
-    "https://*.vercel.app",   # Vercel deployments
+    "https://smart-retail-bookstore.vercel.app",  # Vercel production
+    "https://smart-retail-bookstore-by2j34m8k-saikiransomanagoudar-projects.vercel.app",  # Vercel preview URLs
 ]
 
 # Add production frontend URL if available
