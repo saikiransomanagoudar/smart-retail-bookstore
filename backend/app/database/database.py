@@ -36,10 +36,21 @@ def get_db():
 def create_tables():
     from app.models.user import UserPreferences
     from app.models.orders import Order
-
-    try:
-        UserPreferences.__table__.drop(engine, checkfirst=True)
-    except Exception:
-        pass
+    from sqlalchemy import text
     
+    # Create tables if they don't exist
     Base.metadata.create_all(bind=engine)
+    
+    # Add missing columns safely for existing tables
+    try:
+        with engine.connect() as conn:
+            # Check if themes_of_interest column exists, if not add it
+            result = conn.execute(text("PRAGMA table_info(user_preferences)"))
+            columns = [row[1] for row in result.fetchall()]
+            
+            if 'themes_of_interest' not in columns:
+                conn.execute(text("ALTER TABLE user_preferences ADD COLUMN themes_of_interest TEXT"))
+                conn.commit()
+                print("✅ Added themes_of_interest column")
+    except Exception as e:
+        print(f"ℹ️  Column update not needed or failed: {e}")

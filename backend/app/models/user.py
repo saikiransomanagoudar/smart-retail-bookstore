@@ -16,29 +16,34 @@ class UserPreferences(Base):
 
 
 def save_user_preferences(user_id: str, preferences: dict, db: Session):
-    user_preferences = db.query(UserPreferences).filter(UserPreferences.user_id == user_id).first()
+    try:
+        user_preferences = db.query(UserPreferences).filter(UserPreferences.user_id == user_id).first()
 
-    def list_to_string(lst: List[str]) -> str:
-        return ', '.join(lst) if lst else ''
+        def list_to_string(lst: List[str]) -> str:
+            return ', '.join(lst) if lst else ''
 
-    if user_preferences:
-        user_preferences.favorite_books = list_to_string(preferences["favorite_books"])
-        user_preferences.favorite_authors = list_to_string(preferences["favorite_authors"])
-        user_preferences.preferred_genres = list_to_string(preferences["preferred_genres"])
-        user_preferences.themes_of_interest = list_to_string(preferences["themes_of_interest"])
-        user_preferences.reading_level = preferences["reading_level"]
-    else:
-        new_preferences = UserPreferences(
-            user_id=user_id,
-            favorite_books=list_to_string(preferences["favorite_books"]),
-            favorite_authors=list_to_string(preferences["favorite_authors"]),
-            preferred_genres=list_to_string(preferences["preferred_genres"]),
-            themes_of_interest=list_to_string(preferences["themes_of_interest"]),
-            reading_level=preferences["reading_level"]
-        )
-        db.add(new_preferences)
+        if user_preferences:
+            user_preferences.favorite_books = list_to_string(preferences.get("favorite_books", []))
+            user_preferences.favorite_authors = list_to_string(preferences.get("favorite_authors", []))
+            user_preferences.preferred_genres = list_to_string(preferences.get("preferred_genres", []))
+            user_preferences.themes_of_interest = list_to_string(preferences.get("themes_of_interest", []))
+            user_preferences.reading_level = preferences.get("reading_level", "intermediate")
+        else:
+            new_preferences = UserPreferences(
+                user_id=user_id,
+                favorite_books=list_to_string(preferences.get("favorite_books", [])),
+                favorite_authors=list_to_string(preferences.get("favorite_authors", [])),
+                preferred_genres=list_to_string(preferences.get("preferred_genres", [])),
+                themes_of_interest=list_to_string(preferences.get("themes_of_interest", [])),
+                reading_level=preferences.get("reading_level", "intermediate")
+            )
+            db.add(new_preferences)
 
-    db.commit()
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        print(f"Error saving user preferences: {str(e)}")
+        raise e
 
 
 def get_user_preferences(user_id: str, db: Session) -> Optional[Dict]:
