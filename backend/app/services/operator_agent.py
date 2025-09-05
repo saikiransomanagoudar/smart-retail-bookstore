@@ -5,7 +5,7 @@ from .order_query_agent import OrderQueryAgent
 from .order_placement_agent import OrderPlacementAgent
 from .fraudulent_transaction_agent import FraudulentTransactionAgent
 from .user_proxy_agent import UserProxyAgent
-from langchain_community.llms import OpenAI
+from langchain.llms import OpenAI
 from langchain_core.messages import HumanMessage, AIMessage
 from langgraph.graph import StateGraph, START, END
 from langchain.memory import ConversationBufferMemory
