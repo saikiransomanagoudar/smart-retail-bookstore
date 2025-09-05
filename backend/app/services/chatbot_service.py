@@ -6,7 +6,8 @@ from typing import Dict, Any, List
 from langchain.llms import OpenAI
 from langchain.chat_models import ChatOpenAI
 from langchain.memory import ConversationBufferMemory
-from langgraph.graph import StateGraph, START, END
+from langgraph.graph import StateGraph
+from langgraph.constants import START, END
 from langchain_core.messages import HumanMessage, AIMessage
 from pydantic import BaseModel
 import operator
