@@ -75,7 +75,6 @@ class ChatbotService:
         )
 
     def define_graph(self):
-        # Add nodes for each agent
         self.state_graph.add_node("user_proxy_agent", self.user_proxy_agent)
         self.state_graph.add_node("operator_agent", self.operator_agent)
         self.state_graph.add_node("recommendation_agent", self.recommendation_agent)
@@ -83,22 +82,21 @@ class ChatbotService:
         self.state_graph.add_node("order_query_agent", self.order_query_agent)
         self.state_graph.add_node("fraudulent_transaction_agent", self.fraudulent_transaction_agent)
 
-        # Set entry point and define edges
         self.state_graph.set_entry_point("user_proxy_agent")
         self.state_graph.add_edge("user_proxy_agent", "operator_agent")
-        self.state_graph.add_edge("operator_agent", "recommendation_agent")
-        self.state_graph.add_edge("operator_agent", "order_placement_agent")
-        self.state_graph.add_edge("operator_agent", "order_query_agent")
-        self.state_graph.add_edge("operator_agent", "fraudulent_transaction_agent")
         
-        # Set finish points
+        def route_after_operator(state):
+            return "END"
+        
+        self.state_graph.add_conditional_edges(
+            "operator_agent",
+            route_after_operator,
+            {
+                "END": "__end__"
+            }
+        )
+        
         self.state_graph.set_finish_point("operator_agent")
-        self.state_graph.set_finish_point("recommendation_agent")
-        self.state_graph.set_finish_point("order_placement_agent")
-        self.state_graph.set_finish_point("order_query_agent")
-        self.state_graph.set_finish_point("fraudulent_transaction_agent")
-
-        # Compile the graph
         self.compiled_graph = self.state_graph.compile()
 
     async def chat(self, user_input: str):
