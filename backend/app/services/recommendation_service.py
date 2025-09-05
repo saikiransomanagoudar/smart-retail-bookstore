@@ -150,26 +150,26 @@ async def get_recommendations(user_id: str, db: Session) -> List[Dict]:
             
             return processed_books
 
-    processed_books = []
+        processed_books = []
         
-    for book in recommended_books:
+        for book in recommended_books:
             try:
-        normalized_title = normalize_title(book['title'])
-        book_details = await graphql_service.get_book_details_by_titles(normalized_title)
-        if book_details:
-            b = book_details[0]
-            processed_book = {
-                "title": b["title"],
-                "release_year": b.get("release_year"),
-                        "image_url": b.get("image_url", "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjQwMCIgdmlld0JveD0iMCAwIDMwMCA0MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImJnR3JhZGllbnQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojNjY2Njk5O3N0b3Atb3BhY2l0eToxIiAvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiM5OTk5Y2M7c3RvcC1vcGFjaXR5OjEiIC8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJib29rR3JhZGllbnQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojNDA0NjhiO3N0b3Atb3BhY2l0eToxIiAvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiM2MjY2OWY7c3RvcC1vcGFjaXR5OjEiIC8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGZpbHRlciBpZD0iZHJvcFNoYWRvdyI+CiAgICAgIDxmZU9mZnNldCBkeD0iMyIgZHk9IjMiLz4KICAgICAgPGZlR2F1c3NpYW5CbHVyIHN0ZERldmlhdGlvbj0iMyIvPgogICAgICA8ZmVGbG9vZCBmbG9vZC1jb2xvcj0iIzAwMDAwMCIgZmxvb2Qtb3BhY2l0eT0iMC4zIi8+CiAgICAgIDxmZUNvbXBvc2l0ZSBvcGVyYXRvcj0ib3ZlciIvPgogICAgPC9maWx0ZXI+CiAgPC9kZWZzPgogIDxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iNDAwIiBmaWxsPSJ1cmwoI2JnR3JhZGllbnQpIi8+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNzUsIDgwKSI+CiAgICA8IS0tIEJvb2sgQ292ZXIgLS0+CiAgICA8cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMTUwIiBoZWlnaHQ9IjI0MCIgZmlsbD0idXJsKCNib29rR3JhZGllbnQpIiByeD0iMTAiIGZpbHRlcj0idXJsKCNkcm9wU2hhZG93KSIvPgogICAgPCEtLSBCb29rIFNwaW5lIC0tPgogICAgPHJlY3QgeD0iNSIgeT0iMCIgd2lkdGg9IjEwIiBoZWlnaHQ9IjI0MCIgZmlsbD0iIzJkMzc0OCIgcng9IjIiLz4KICAgIDwhLS0gQm9vayBQYWdlcyAtLT4KICAgIDxyZWN0IHg9IjE1IiB5PSI4IiB3aWR0aD0iMTI1IiBoZWlnaHQ9IjIyNCIgZmlsbD0iI2Y4ZjlmYSIgcng9IjUiLz4KICAgIDwhLS0gVGV4dCBMaW5lcyAtLT4KICAgIDxyZWN0IHg9IjI1IiB5PSIzMCIgd2lkdGg9IjEwNSIgaGVpZ2h0PSI0IiBmaWxsPSIjZTBlNmVkIiByeD0iMiIvPgogICAgPHJlY3QgeD0iMjUiIHk9IjQ1IiB3aWR0aD0iODAiIGhlaWdodD0iNCIgZmlsbD0iI2UwZTZlZCIgcng9IjIiLz4KICAgIDxyZWN0IHg9IjI1IiB5PSI2MCIgd2lkdGg9Ijk1IiBoZWlnaHQ9IjQiIGZpbGw9IiNlMGU2ZWQiIHJ4PSIyIi8+CiAgICA8cmVjdCB4PSIyNSIgeT0iNzUiIHdpZHRoPSI3MCIgaGVpZ2h0PSI0IiBmaWxsPSIjZTBlNmVkIiByeD0iMiIvPgogICAgPHJlY3QgeD0iMjUiIHk9IjkwIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjQiIGZpbGw9IiNlMGU2ZWQiIHJ4PSIyIi8+CiAgICA8IS0tIEJvb2sgSWNvbiAtLT4KICAgIDxjaXJjbGUgY3g9Ijc1IiBjeT0iMTYwIiByPSIyNSIgZmlsbD0iIzQwNDY4YiIgb3BhY2l0eT0iMC4xIi8+CiAgICA8dGV4dCB4PSI3NSIgeT0iMTcwIiBmb250LWZhbWlseT0iU2Vnb2UgVUksIEFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjMwIiBmaWxsPSIjNDA0NjhiIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7wn5OWPC90ZXh0PgogIDwvZz4KPC9zdmc+"),
-                "rating": b.get("rating"),
-                "pages": b.get("pages"),
-                "author": book["author"],
-                "price": generate_random_price(),
-                "description": b.get("description"),
-                "headline": b.get("headline")
-            }
-            processed_books.append(processed_book)
+                normalized_title = normalize_title(book['title'])
+                book_details = await graphql_service.get_book_details_by_titles(normalized_title)
+                if book_details:
+                    b = book_details[0]
+                    processed_book = {
+                        "title": b["title"],
+                        "release_year": b.get("release_year"),
+                        "image_url": b.get("image_url", "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjQwMCIgdmlld0JveD0iMCAwIDMwMCA0MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImJnR3JhZGllbnQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojNjY2Njk5O3N0b3Atb3BhY2l0eToxIiAvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiM5OTk5Y2M7c3RvcC1vcGFjaXR5OjEiIC8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJib29rR3JhZGllbnQiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojNDA0NjhiO3N0b3Atb3BhY2l0eToxIiAvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiM2MjY2OWY7c3RvcC1vcGFjaXR5OjEiIC9+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGZpbHRlciBpZD0iZHJvcFNoYWRvdyI+CiAgICAgIDxmZU9mZnNldCBkeD0iMyIgZHk9IjMiLz4KICAgICAgPGZlR2F1c3NpYW5CbHVyIHN0ZERldmlhdGlvbj0iMyIvPgogICAgICA8ZmVGbG9vZCBmbG9vZC1jb2xvcj0iIzAwMDAwMCIgZmxvb2Qtb3BhY2l0eT0iMC4zIi8+CiAgICAgIDxmZUNvbXBvc2l0ZSBvcGVyYXRvcj0ib3ZlciIvPgogICAgPC9maWx0ZXI+CiAgPC9kZWZzPgogIDxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iNDAwIiBmaWxsPSJ1cmwoI2JnR3JhZGllbnQpIi8+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNzUsIDgwKSI+CiAgICA8IS0tIEJvb2sgQ292ZXIgLS0+CiAgICA8cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMTUwIiBoZWlnaHQ9IjI0MCIgZmlsbD0idXJsKCNib29rR3JhZGllbnQpIiByeD0iMTAiIGZpbHRlcj0idXJsKCNkcm9wU2hhZG93KSIvPgogICAgPCEtLSBCb29rIFNwaW5lIC0tPgogICAgPHJlY3QgeD0iNSIgeT0iMCIgd2lkdGg9IjEwIiBoZWlnaHQ9IjI0MCIgZmlsbD0iIzJkMzc0OCIgcng9IjIiLz4KICAgIDwhLS0gQm9vayBQYWdlcyAtLT4KICAgIDxyZWN0IHg9IjE1IiB5PSI4IiB3aWR0aD0iMTI1IiBoZWlnaHQ9IjIyNCIgZmlsbD0iI2Y4ZjlmYSIgcng9IjUiLz4KICAgIDwhLS0gVGV4dCBMaW5lcyAtLT4KICAgIDxyZWN0IHg9IjI1IiB5PSIzMCIgd2lkdGg9IjEwNSIgaGVpZ2h0PSI0IiBmaWxsPSIjZTBlNmVkIiByeD0iMiIvPgogICAgPHJlY3QgeD0iMjUiIHk9IjQ1IiB3aWR0aD0iODAiIGhlaWdodD0iNCIgZmlsbD0iI2UwZTZlZCIgcng9IjIiLz4KICAgIDxyZWN0IHg9IjI1IiB5PSI2MCIgd2lkdGg9Ijk1IiBoZWlnaHQ9IjQiIGZpbGw9IiNlMGU2ZWQiIHJ4PSIyIi8+CiAgICA8cmVjdCB4PSIyNSIgeT0iNzUiIHdpZHRoPSI3MCIgaGVpZ2h0PSI0IiBmaWxsPSIjZTBlNmVkIiByeD0iMiIvPgogICAgPHJlY3QgeD0iMjUiIHk9IjkwIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjQiIGZpbGw9IiNlMGU2ZWQiIHJ4PSIyIi8+CiAgICA8IS0tIEJvb2sgSWNvbiAtLT4KICAgIDxjaXJjbGUgY3g9Ijc1IiBjeT0iMTYwIiByPSIyNSIgZmlsbD0iIzQwNDY4YiIgb3BhY2l0eT0iMC4xIi8+CiAgICA8dGV4dCB4PSI3NSIgeT0iMTcwIiBmb250LWZhbWlseT0iU2Vnb2UgVUksIEFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjMwIiBmaWxsPSIjNDA0NjhiIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7wn5OWPC90ZXh0PgogIDwvZz4KPC9zdmc+"),
+                        "rating": b.get("rating"),
+                        "pages": b.get("pages"),
+                        "author": book["author"],
+                        "price": generate_random_price(),
+                        "description": b.get("description"),
+                        "headline": b.get("headline")
+                    }
+                    processed_books.append(processed_book)
             except Exception as e:
                 logging.error(f"Error processing book {book.get('title', 'Unknown')}: {e}")
                 continue
