@@ -86,17 +86,31 @@ class ChatbotService:
         self.state_graph.add_edge("user_proxy_agent", "operator_agent")
         
         def route_after_operator(state):
+            # Get the last message from operator_agent to determine routing
+            if hasattr(state, 'messages') and state.messages:
+                last_message = state.messages[-1]
+                if hasattr(last_message, 'additional_kwargs'):
+                    next_node = last_message.additional_kwargs.get('next_node', 'END')
+                    return next_node
             return "END"
         
         self.state_graph.add_conditional_edges(
             "operator_agent",
             route_after_operator,
             {
-                "END": "__end__"
+                "END": "__end__",
+                "recommendation_agent": "recommendation_agent",
+                "order_placement_agent": "order_placement_agent", 
+                "order_query_agent": "order_query_agent",
+                "fraudulent_transaction_agent": "fraudulent_transaction_agent"
             }
         )
         
-        self.state_graph.set_finish_point("operator_agent")
+        # Add edges from specific agents back to end
+        self.state_graph.add_edge("recommendation_agent", "__end__")
+        self.state_graph.add_edge("order_placement_agent", "__end__")
+        self.state_graph.add_edge("order_query_agent", "__end__")
+        self.state_graph.add_edge("fraudulent_transaction_agent", "__end__")
         self.compiled_graph = self.state_graph.compile()
 
     async def chat(self, user_input: str):
