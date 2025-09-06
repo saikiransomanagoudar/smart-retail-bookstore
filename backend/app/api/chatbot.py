@@ -24,7 +24,7 @@ async def chat(request: Request):
         }, status_code=400)
 
     try:
-        response = await chatbot_service.operator_agent.on_message(user_input)
+        response = await chatbot_service.chat(user_input)
 
         
         if "recommendations" in response:

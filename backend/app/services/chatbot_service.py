@@ -1,6 +1,7 @@
 # chatbot_service.py
 
 import os
+import asyncio
 from dotenv import load_dotenv
 from typing import Dict, Any, List
 from langchain.llms import OpenAI
