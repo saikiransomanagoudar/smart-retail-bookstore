@@ -99,6 +99,12 @@ class OperatorAgent:
         """
         # Determine intents
         intents = self.determine_intent(message)
+        
+        # Fallback: Check for book recommendation keywords if LLM didn't detect them
+        book_keywords = ["book", "books", "horror", "fantasy", "romance", "sci-fi", "mystery", "thriller", "action", "adventure", "recommend", "suggest", "show me", "give me"]
+        if not any(intent in intents for intent in ["book_recommendation"]):
+            if any(keyword in message.lower() for keyword in book_keywords):
+                intents.append("book_recommendation")
 
         # Intent to agent mapping
         intent_to_agent_map = {
