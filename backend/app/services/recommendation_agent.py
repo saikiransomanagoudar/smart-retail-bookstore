@@ -129,7 +129,7 @@ class RecommendationAgent:
         if self.ready_for_recommendations or self.check_readiness(user_input):
             self.memory.chat_memory.add_user_message(user_input)
             self.ready_for_recommendations = True
-            recommendations = await self.recommend_books()
+            recommendations = await self.recommend_books(user_input)
             self.recommendation_provided = True
             return {"type": "recommendation", "response": recommendations}
         
@@ -197,7 +197,7 @@ class RecommendationAgent:
         
         # Check if user is directly requesting recommendations
         direct_request_keywords = [
-            "recommend", "suggest", "show me", "i want", "looking for", 
+            "recommend", "suggest", "show me", "give me", "i want", "looking for", 
             "find me", "books about", "books on", "horror books", "fantasy books",
             "romance books", "sci-fi books", "mystery books", "thriller books",
             "action books", "adventure books", "comedy books", "drama books"
@@ -311,7 +311,7 @@ class RecommendationAgent:
             if not processed_books:
                 from app.services.recommendation_service import get_trending_books, get_genre_specific_books
                 try:
-                    user_request = self.current_user_input.lower() if self.current_user_input else ""
+                    user_request = user_input.lower() if user_input else ""
                     
                     detected_genre = None
                     genre_keywords = {
