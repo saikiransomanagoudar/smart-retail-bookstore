@@ -92,6 +92,17 @@ Respond with only the action.
         
         pass
 
+    async def on_message(self, message: str) -> Dict[str, Any]:
+       
+        from langchain_core.messages import AIMessage
+        
+        try:
+            response = "I can help you with fraudulent transaction issues. Please provide details about the suspicious transaction."
+            return {"messages": [AIMessage(content=response)]}
+        except Exception as e:
+            logging.error(f"Error in FraudulentTransactionAgent.on_message: {str(e)}")
+            return {"messages": [AIMessage(content="I'm sorry, I encountered an error while processing your request. Please try again.")]}
+
     def __call__(self, state: Dict[str, Any]) -> Dict[str, Any]:
         """
         Callable interface for langgraph compatibility.

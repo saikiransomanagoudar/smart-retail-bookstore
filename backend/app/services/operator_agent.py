@@ -69,6 +69,13 @@ class OperatorAgent:
             f"Classify the user's message into one or more of the following intents: "
             f"book_recommendation, order_query, order_placement, "
             f"fraudulent_transactions, or out_of_context.\n\n"
+            f"Examples:\n"
+            f"- 'give me some horror books' -> book_recommendation\n"
+            f"- 'show me fantasy books' -> book_recommendation\n"
+            f"- 'recommend books' -> book_recommendation\n"
+            f"- 'what books do you suggest?' -> book_recommendation\n"
+            f"- 'I want action books' -> book_recommendation\n"
+            f"- 'looking for romance novels' -> book_recommendation\n\n"
             f"User message: {message}\n\n"
             f"Return a comma-separated list of intents."
         )

@@ -161,6 +161,16 @@ class OrderPlacementAgent:
         self.order_data = {}
         self.cart_items = []
 
+    async def on_message(self, message: str) -> Dict[str, Any]:
+        from langchain_core.messages import AIMessage
+        
+        try:
+            response = "I can help you place orders. Please provide your order details and user information."
+            return {"messages": [AIMessage(content=response)]}
+        except Exception as e:
+            logging.error(f"Error in OrderPlacementAgent.on_message: {str(e)}")
+            return {"messages": [AIMessage(content="I'm sorry, I encountered an error while processing your request. Please try again.")]}
+
     def __call__(self, state: Dict[str, Any]) -> Dict[str, Any]:
         """
         Callable interface for langgraph compatibility.
