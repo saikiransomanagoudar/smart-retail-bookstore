@@ -126,6 +126,14 @@ class ChatbotService:
             logging.info(f"Agent or response: {agent_or_response}")
 
             if isinstance(agent_or_response, dict):
+                # Extract content from messages if response field is empty
+                if not agent_or_response.get("response") and agent_or_response.get("messages"):
+                    messages = agent_or_response["messages"]
+                    if messages and isinstance(messages[0], dict):
+                        agent_or_response["response"] = messages[0].get("content", "")
+                    elif messages and hasattr(messages[0], "content"):
+                        agent_or_response["response"] = messages[0].content
+                
                 final_response = self.user_proxy_agent.postprocess_response(agent_or_response)
                 logging.info(f"Final response: {final_response}")
                 return final_response
