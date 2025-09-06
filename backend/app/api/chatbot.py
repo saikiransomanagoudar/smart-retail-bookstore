@@ -24,10 +24,7 @@ async def chat(request: Request):
         }, status_code=400)
 
     try:
-        if asyncio.iscoroutinefunction(chatbot_service.operator_agent.on_message):
-            response = await chatbot_service.operator_agent.on_message(user_input)
-        else:
-            response = chatbot_service.operator_agent.on_message(user_input)
+        response = await chatbot_service.operator_agent.on_message(user_input)
 
         
         if "recommendations" in response:

@@ -146,8 +146,8 @@ class OperatorAgent:
         self.memory.chat_memory.add_message(HumanMessage(content=curated_response))
         return {"next_node": "END", "messages": combined_responses}
 
-    def __call__(self, input: str) -> Dict:
+    async def __call__(self, input: str) -> Dict:
         """
         Allow the OperatorAgent to be callable by routing the input message to on_message.
         """
-        return self.on_message(input)
+        return await self.on_message(input)

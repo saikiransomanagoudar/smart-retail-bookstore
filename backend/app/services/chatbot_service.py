@@ -120,8 +120,8 @@ class ChatbotService:
             preprocessed_input = self.user_proxy_agent.preprocess_message({"message": user_input})
             logging.info(f"Preprocessed input: {preprocessed_input}")
 
-            # Route the message through the state graph
-            agent_or_response = await self.operator_agent.route_message(preprocessed_input)
+            # Route the message through the operator agent
+            agent_or_response = await self.operator_agent.on_message(preprocessed_input.get("message", ""))
             logging.info(f"Agent or response: {agent_or_response}")
 
             if isinstance(agent_or_response, dict):
@@ -132,7 +132,10 @@ class ChatbotService:
             # If an agent is returned, process the request with that agent
             agent = agent_or_response
             if hasattr(agent, "__call__"):
-                response = await agent(preprocessed_input)
+                if asyncio.iscoroutinefunction(agent.__call__):
+                    response = await agent(preprocessed_input)
+                else:
+                    response = agent(preprocessed_input)
                 logging.info(f"Response from agent: {response}")
                 return self.user_proxy_agent.postprocess_response(response)
 

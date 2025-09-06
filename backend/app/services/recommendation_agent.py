@@ -388,12 +388,12 @@ class RecommendationAgent:
         self.recommended_books.clear()
         self.question_count = 0
 
-    def __call__(self, state: Dict[str, Any]) -> Dict[str, Any]:
+    async def __call__(self, state: Dict[str, Any]) -> Dict[str, Any]:
         """
         Callable interface for langgraph compatibility.
         Processes the user input and returns the updated state with recommendations.
         """
         user_input = state.get('message', '')
-        recommendations = self.recommend_books(user_input)
+        recommendations = await self.recommend_books(user_input)
         state['recommendations'] = recommendations
         return state

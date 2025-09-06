@@ -18,7 +18,6 @@ if settings.DATABASE_URL.startswith("postgresql"):
 elif settings.DATABASE_URL.startswith("sqlite"):
     # SQLite configuration for development
     engine_kwargs.update({
-        "check_same_thread": False,
         "echo": False
     })
 
