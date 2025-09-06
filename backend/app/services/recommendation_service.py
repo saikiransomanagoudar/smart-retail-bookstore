@@ -85,11 +85,9 @@ def generate_llm_recommendations(preferences: dict) -> List[Dict]:
 
             continue
 
-        except json.JSONDecodeError as e:
-            logging.error(f"Attempt {attempt + 1}: JSON parsing error: {e}")
+        except json.JSONDecodeError:
             continue
-        except Exception as e:
-            logging.error(f"Attempt {attempt + 1}: Unexpected error: {e}")
+        except Exception:
             continue
 
     raise HTTPException(
@@ -122,8 +120,7 @@ async def get_recommendations(user_id: str, db: Session) -> List[Dict]:
                 processed_books.append(processed_book)
             
             return processed_books
-        except Exception as e:
-            logging.error(f"Error getting random books: {e}")
+        except Exception:
             return []
     
     try:
@@ -170,15 +167,14 @@ async def get_recommendations(user_id: str, db: Session) -> List[Dict]:
                         "headline": b.get("headline")
                     }
                     processed_books.append(processed_book)
-            except Exception as e:
-                logging.error(f"Error processing book {book.get('title', 'Unknown')}: {e}")
+            except Exception:
                 continue
         
         if processed_books:
             return processed_books
             
-    except Exception as e:
-        logging.error(f"Error in LLM recommendations: {e}")
+    except Exception:
+        pass
     
     import random
     random_ids = random.sample(range(1, 2000), 20)
@@ -200,8 +196,7 @@ async def get_recommendations(user_id: str, db: Session) -> List[Dict]:
             processed_books.append(processed_book)
 
         return processed_books
-    except Exception as e:
-        logging.error(f"Final fallback failed: {e}")
+    except Exception:
         return []
 
 
@@ -243,30 +238,40 @@ async def get_trending_books() -> List[Dict]:
 async def get_genre_specific_books(genre: str, limit: int = 15, offset: int = 0) -> List[Dict]:
     """Get books specific to a genre using multiple search strategies"""
     try:
+        # First try to get recent popular books
         recent_ids = await graphql_service.get_popular_books_by_year_range(2020, 2024, 30)
         
+        # Get some classic books too
         classic_ids = await graphql_service.get_popular_books_by_year_range(2010, 2020, 30)
         
+        # Combine and shuffle the IDs
         all_ids = list(set(recent_ids + classic_ids))
         
         if all_ids:
             import random
             random.shuffle(all_ids)
             
+            # Calculate pagination
             total_available = len(all_ids)
             start_idx = offset % total_available
-            books_to_fetch = min(limit * 2, total_available)
+            books_to_fetch = min(limit * 2, total_available)  # Fetch more to filter from
             end_idx = min(start_idx + books_to_fetch, total_available)
             
+            # Handle wraparound if needed
             if end_idx - start_idx < books_to_fetch and start_idx > 0:
                 selected_ids = all_ids[start_idx:] + all_ids[:books_to_fetch - (end_idx - start_idx)]
             else:
                 selected_ids = all_ids[start_idx:end_idx]
+                
+            # Get book details
             books = await graphql_service.get_book_details_by_ids(selected_ids)
             
             if books:
                 processed_books = []
                 for book in books[:limit]:
+                    # Generate a more appropriate recommendation reason based on genre
+                    reason = generate_genre_reason(genre, book.get("title", ""), book.get("description", ""))
+                    
                     processed_book = {
                         "id": book.get("id"),
                         "title": book["title"],
@@ -277,13 +282,72 @@ async def get_genre_specific_books(genre: str, limit: int = 15, offset: int = 0)
                         "pages": book.get("pages"),
                         "description": book.get("description", "No description available."),
                         "price": generate_random_price(),
-                        "author": book.get("author", "Unknown Author")
+                        "author": book.get("author", "Unknown Author"),
+                        "reason": reason
                     }
                     processed_books.append(processed_book)
                 
                 return processed_books
                 
-    except Exception as e:
+    except Exception:
         pass
     
     return await get_trending_books()
+
+
+def generate_genre_reason(genre: str, title: str, description: str) -> str:
+    """Generate a more appropriate recommendation reason based on genre"""
+    genre_lower = genre.lower()
+    
+    # Genre-specific reasons with some variety
+    genre_reasons = {
+        "horror": [
+            f"This chilling {genre} book will keep you on edge",
+            f"Perfect {genre} pick for spine-tingling suspense",
+            f"A terrifying {genre} story that matches your taste",
+            f"Excellent {genre} book with psychological thrills"
+        ],
+        "action": [
+            f"High-octane {genre} packed with excitement",
+            f"Thrilling {genre} adventure you'll love",
+            f"Fast-paced {genre} book perfect for adrenaline lovers",
+            f"Edge-of-your-seat {genre} that delivers non-stop excitement"
+        ],
+        "romance": [
+            f"Beautiful {genre} story that will warm your heart",
+            f"Captivating {genre} with unforgettable characters",
+            f"Swoon-worthy {genre} that's perfect for your reading mood",
+            f"Heartfelt {genre} book that delivers emotional depth"
+        ],
+        "mystery": [
+            f"Intriguing {genre} with clever plot twists",
+            f"Mind-bending {genre} that will keep you guessing",
+            f"Compelling {genre} with satisfying revelations",
+            f"Masterful {genre} book with unexpected turns"
+        ],
+        "fantasy": [
+            f"Epic {genre} adventure in a richly imagined world",
+            f"Magical {genre} story with compelling characters",
+            f"Immersive {genre} that transports you to new realms",
+            f"Enchanting {genre} book perfect for escapism"
+        ],
+        "science fiction": [
+            f"Thought-provoking {genre} with innovative concepts",
+            f"Mind-expanding {genre} that explores future possibilities",
+            f"Brilliant {genre} with compelling world-building",
+            f"Visionary {genre} book that challenges perspectives"
+        ],
+        "thriller": [
+            f"Pulse-pounding {genre} that's impossible to put down",
+            f"Intense {genre} with breathtaking suspense",
+            f"Gripping {genre} that builds tension masterfully",
+            f"Heart-racing {genre} perfect for thrill seekers"
+        ]
+    }
+    
+    # Get appropriate reasons for the genre, or use a generic one
+    if genre_lower in genre_reasons:
+        import random
+        return random.choice(genre_reasons[genre_lower])
+    else:
+        return f"Excellent {genre} book that matches your preferences"

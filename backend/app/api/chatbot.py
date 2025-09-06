@@ -60,7 +60,7 @@ async def chat(request: Request):
         
         return JSONResponse(content=formatted_response)
     except Exception as e:
-        pass
+        logging.error(f"Error in chat endpoint: {str(e)}")
         return JSONResponse(content={
             "type": "error",
             "response": f"An error occurred: {str(e)}"

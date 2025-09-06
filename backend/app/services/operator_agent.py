@@ -15,14 +15,12 @@ import os
 import asyncio
 from dotenv import load_dotenv
 
-# Load environment variables (ensure .env contains OPENAI_API_KEY)
 load_dotenv()
 
 class OperatorAgent:
     def __init__(self, name: str, llm, memory):
         self.name = name
 
-        # Initialize LLM and memory
         self.llm = ChatOpenAI(
             model="gpt-4o-mini",
             temperature=0.7,
@@ -30,7 +28,6 @@ class OperatorAgent:
         )
         self.memory = ConversationBufferMemory(return_messages=True)
 
-        # Register agents
         self.agent_registry = {
             "recommendation_agent": RecommendationAgent(self.llm, self.memory),
             "order_query_agent": OrderQueryAgent(llm=self.llm),
@@ -40,9 +37,6 @@ class OperatorAgent:
         }
 
     def initialize_llm(self) -> ChatOpenAI:
-        """
-        Initialize the language model (LLM) with the API key from environment variables.
-        """
         api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
             logging.error("OPENAI_API_KEY is not found in environment variables.")
@@ -55,16 +49,10 @@ class OperatorAgent:
         )
 
     def set_agent_registry(self, registry: Dict[str, Any]):
-        """
-        Register agents with the OperatorAgent for intent-based routing.
-        """
         self.agent_registry = registry
 
 
     def determine_intent(self, message: str) -> List[str]:
-        """
-        Use the LLM to determine the intent of the user query.
-        """
         prompt = (
             f"Classify the user's message into one or more of the following intents: "
             f"book_recommendation, order_query, order_placement, "
@@ -81,9 +69,7 @@ class OperatorAgent:
         )
 
         try:
-            # Use the updated `invoke` method
             response = self.llm.invoke(prompt)
-            # Extract content from AIMessage object
             response_content = response.content if hasattr(response, 'content') else str(response)
             predicted_intents = [intent.strip().lower() for intent in response_content.split(",")]
             return predicted_intents
@@ -94,19 +80,16 @@ class OperatorAgent:
 
 
     async def on_message(self, message: str) -> Dict:
-        """
-        Process the user message, determine the intent, and route to appropriate agents.
-        """
-        # Determine intents
         intents = self.determine_intent(message)
         
-        # Fallback: Check for book recommendation keywords if LLM didn't detect them
         book_keywords = ["book", "books", "horror", "fantasy", "romance", "sci-fi", "mystery", "thriller", "action", "adventure", "recommend", "suggest", "show me", "give me"]
         if not any(intent in intents for intent in ["book_recommendation"]):
             if any(keyword in message.lower() for keyword in book_keywords):
                 intents.append("book_recommendation")
+                logging.info(f"Added book_recommendation intent based on keywords for message: {message}")
 
-        # Intent to agent mapping
+        logging.info(f"Final determined intents: {intents} for message: {message}")
+
         intent_to_agent_map = {
             "book_recommendation": "recommendation_agent",
             "order_query": "order_query_agent",
@@ -115,11 +98,9 @@ class OperatorAgent:
             "out_of_context": None,
         }
 
-        # Determine which agents to trigger
         triggered_agents = list({intent_to_agent_map[intent] for intent in intents
                                  if intent in intent_to_agent_map and intent_to_agent_map[intent]})
 
-        # Fallback response if no agents are triggered
         if not triggered_agents:
             fallback_response = (
                 "I'm here to assist with books, orders, or related queries. Please ask a relevant question!"
@@ -147,7 +128,6 @@ class OperatorAgent:
                         combined_responses.append(serialize_message(msg))
                         response_set.add(msg.content)
                     elif isinstance(msg, dict) and msg.get("content") and msg.get("content") not in response_set:
-                        # Handle already-serialized messages
                         combined_responses.append(msg)
                         response_set.add(msg.get("content"))
             
@@ -160,7 +140,4 @@ class OperatorAgent:
         return {"next_node": "END", "messages": combined_responses}
 
     async def __call__(self, input: str) -> Dict:
-        """
-        Allow the OperatorAgent to be callable by routing the input message to on_message.
-        """
         return await self.on_message(input)

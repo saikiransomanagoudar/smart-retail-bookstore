@@ -10,8 +10,6 @@ import re
 import json
 from typing import List, Dict, Any
 
-logging.basicConfig(level=logging.INFO)
-
 def normalize_title(title: str) -> str:
     return re.split(r":|–|-", title)[-1].strip()
 
@@ -90,7 +88,6 @@ class RecommendationAgent:
         )
 
     async def chat(self, user_input: str):
-        # Store the current user input for genre detection
         self.current_user_input = user_input
         
         if user_input.lower() == "quit":
@@ -116,7 +113,7 @@ class RecommendationAgent:
         if self.recommendation_provided and any(phrase in user_input.lower() for phrase in feedback_keywords):
             self.recommendation_provided = False
             self.ready_for_recommendations = False
-            self.question_count = max(2, self.question_count)  # Reset to ask at least 2 more questions for clarity
+            self.question_count = max(2, self.question_count)
 
             response = await self.conversation.ainvoke({
                 "input": f"It seems you weren't satisfied with the previous recommendations. Could you tell me more about your preferences or specific genres, authors, or themes you're interested in? This will help me improve my suggestions."
@@ -125,13 +122,15 @@ class RecommendationAgent:
             self.memory.chat_memory.add_ai_message(response)
             return {"type": "question", "response": response}
 
-        # Check if this is a direct request for recommendations
         if self.ready_for_recommendations or self.check_readiness(user_input):
             self.memory.chat_memory.add_user_message(user_input)
             self.ready_for_recommendations = True
             recommendations = await self.recommend_books(user_input)
             self.recommendation_provided = True
-            return {"type": "recommendation", "response": recommendations}
+            if recommendations:
+                return {"type": "recommendation", "response": recommendations}
+            else:
+                return {"type": "question", "response": "I couldn't find specific book recommendations for your request. Could you tell me more about what type of books you're interested in? For example, what genres do you enjoy?"}
         
         response = await self.conversation.ainvoke({"input": user_input})
         self.memory.chat_memory.add_user_message(user_input)
@@ -139,13 +138,15 @@ class RecommendationAgent:
 
         if self.detect_refresh_request(user_input) and self.last_recommended_genre:
             recommendations = await self.recommend_books(user_input)
-            return {"type": "recommendation", "response": recommendations}
+            if recommendations:
+                return {"type": "recommendation", "response": recommendations}
         
         if self.check_readiness(user_input):
             self.ready_for_recommendations = True
             recommendations = await self.recommend_books(user_input)
             self.recommendation_provided = True
-            return {"type": "recommendation", "response": recommendations}
+            if recommendations:
+                return {"type": "recommendation", "response": recommendations}
 
         if "?" in response and not self.ready_for_recommendations:
             self.question_count += 1
@@ -153,13 +154,8 @@ class RecommendationAgent:
         return {"type": "question", "response": response}
 
     async def on_message(self, user_input: str) -> Dict:
-        """
-        Process user input and return a structured response.
-        """
         try:
-            response = await self.chat(user_input)  # Ensure this is awaited
-            
-            from langchain_core.messages import AIMessage
+            response = await self.chat(user_input)
             
             if response.get("type") == "recommendation":
                 recommendations = response.get("response", [])
@@ -178,7 +174,6 @@ class RecommendationAgent:
                 
         except Exception as e:
             logging.error(f"Error in RecommendationAgent.on_message: {str(e)}")
-            from langchain_core.messages import AIMessage
             return {"messages": [AIMessage(content=f"I'm sorry, I encountered an error while processing your request. Please try again.")]}
 
 
@@ -192,9 +187,6 @@ class RecommendationAgent:
         return any(keyword in user_lower for keyword in refresh_keywords)
 
     def check_readiness(self, user_input: str) -> bool:
-        sufficient_context = self.question_count >= self.MIN_QUESTIONS
-        detailed_response = len(self.memory.chat_memory.messages) > 3
-        
         # Check if user is directly requesting recommendations
         direct_request_keywords = [
             "recommend", "suggest", "show me", "give me", "i want", "looking for", 
@@ -206,18 +198,18 @@ class RecommendationAgent:
         user_input_lower = user_input.lower()
         direct_request = any(keyword in user_input_lower for keyword in direct_request_keywords)
         if direct_request:
-            self.ready_for_recommendations = True  # Set this flag when direct request is detected
+            self.ready_for_recommendations = True
             return True
 
-        if "genre" in user_input_lower and self.question_count < self.MIN_QUESTIONS:
+        sufficient_context = self.question_count >= 2
+        detailed_response = len(self.memory.chat_memory.messages) > 1
+
+        if "genre" in user_input_lower and self.question_count < 2:
             self.ask_follow_up_questions(user_input)
 
         return sufficient_context or detailed_response
 
     def ask_follow_up_questions(self, response: str):
-        """
-        Adds follow-up questions based on user-provided information.
-        """
         if "genre" in response.lower() and self.question_count < self.MIN_QUESTIONS:
             follow_up_question = (
                 "What specific type within this genre do you enjoy reading?"
@@ -231,7 +223,6 @@ class RecommendationAgent:
             self.question_count += 1
     
     def is_out_of_context(self, user_input: str) -> bool:
-        """Determine if the user's question is out of context."""
         out_of_context_keywords = [
             "weather", "news", "joke", "recipe", "food", "sports", "politics", 
             "movies", "games", "unrelated topic", "non-book related"
@@ -240,7 +231,7 @@ class RecommendationAgent:
 
 
     async def recommend_books(self, user_input: str = "") -> List[Dict[str, Any]]:
-        if not self.ready_for_recommendations:
+        if not self.ready_for_recommendations and not self.check_readiness(user_input):
             return []
 
         chat_history = self.memory.chat_memory.messages
@@ -255,6 +246,8 @@ class RecommendationAgent:
                     "input": f"""Based on this conversation: 
 
                     {conversation_summary}
+
+                    Current user request: {user_input}
 
                     DO NOT recommend any of these previously recommended books:
                     {previously_recommended}
@@ -305,10 +298,9 @@ class RecommendationAgent:
                     self.recommended_books.add(normalized_title)
                     processed_books.append(processed_book)
                 else:
-                    # Skip books that don't match criteria
-                    pass
+                    continue
 
-            if not processed_books:
+            if len(processed_books) < 3:
                 from app.services.recommendation_service import get_trending_books, get_genre_specific_books
                 try:
                     user_request = user_input.lower() if user_input else ""
@@ -320,7 +312,8 @@ class RecommendationAgent:
                         "romance": ["romance", "love", "romantic"],
                         "sci-fi": ["sci-fi", "science fiction", "space", "futuristic"],
                         "mystery": ["mystery", "detective", "crime"],
-                        "thriller": ["thriller", "suspense", "action"]
+                        "thriller": ["thriller", "suspense", "action"],
+                        "action": ["action", "adventure", "thriller"]
                     }
                     
                     for genre, keywords in genre_keywords.items():
@@ -341,15 +334,15 @@ class RecommendationAgent:
                         fallback_books = await get_trending_books()
                         
                     display_limit = min(12, len(fallback_books))
-                    total_available = len(fallback_books)
-                    
                     
                     for book in fallback_books[:display_limit]:
+                        if len(processed_books) >= 12:
+                            break
                         processed_book = {
                             "title": book.get("title", "Unknown Title"),
                             "author": book.get("author", "Unknown Author"),
                             "Price": book.get("price", "9.99"),
-                            "ReasonForRecommendation": self.get_recommendation_reason(detected_genre, book),
+                            "ReasonForRecommendation": book.get("reason", self.get_recommendation_reason(detected_genre, book)),
                             "pages": book.get("pages", "N/A"),
                             "release_year": book.get("release_year", "N/A"),
                             "image_url": book.get("image_url", "https://via.placeholder.com/100x150?text=No+Image"),
@@ -359,13 +352,33 @@ class RecommendationAgent:
                         processed_books.append(processed_book)
                         
                 except Exception as e:
-                    pass
+                    logging.error(f"Error in fallback recommendation: {str(e)}")
 
             return processed_books
         
         except Exception as e:
-            pass
-            return []
+            logging.error(f"Error in recommend_books: {str(e)}")
+            try:
+                from app.services.recommendation_service import get_trending_books
+                fallback_books = await get_trending_books()
+                processed_books = []
+                for book in fallback_books[:8]:
+                    processed_book = {
+                        "title": book.get("title", "Unknown Title"),
+                        "author": book.get("author", "Unknown Author"),
+                        "Price": book.get("price", "9.99"),
+                        "ReasonForRecommendation": "Popular book that matches your reading interests",
+                        "pages": book.get("pages", "N/A"),
+                        "release_year": book.get("release_year", "N/A"),
+                        "image_url": book.get("image_url", "https://via.placeholder.com/100x150?text=No+Image"),
+                        "rating": book.get("rating", "N/A"),
+                        "description": book.get("description", "No description available.")
+                    }
+                    processed_books.append(processed_book)
+                return processed_books
+            except Exception as fallback_error:
+                logging.error(f"Error in fallback recommendations: {str(fallback_error)}")
+                return []
 
     def get_recommendation_reason(self, detected_genre: str, book: Dict) -> str:
         if not detected_genre:
@@ -373,7 +386,6 @@ class RecommendationAgent:
         
         request_count = self.genre_request_count.get(detected_genre, 1)
         
-        # Dynamic reasons based on request count
         if request_count == 1:
             return f"Excellent {detected_genre} book that matches your preferences"
         elif request_count == 2:
@@ -391,10 +403,6 @@ class RecommendationAgent:
         self.question_count = 0
 
     async def __call__(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Callable interface for langgraph compatibility.
-        Processes the user input and returns the updated state with recommendations.
-        """
         user_input = state.get('message', '')
         recommendations = await self.recommend_books(user_input)
         state['recommendations'] = recommendations
