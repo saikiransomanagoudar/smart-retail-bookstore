@@ -199,12 +199,14 @@ class RecommendationAgent:
         direct_request_keywords = [
             "recommend", "suggest", "show me", "i want", "looking for", 
             "find me", "books about", "books on", "horror books", "fantasy books",
-            "romance books", "sci-fi books", "mystery books", "thriller books"
+            "romance books", "sci-fi books", "mystery books", "thriller books",
+            "action books", "adventure books", "comedy books", "drama books"
         ]
         
         user_input_lower = user_input.lower()
         direct_request = any(keyword in user_input_lower for keyword in direct_request_keywords)
         if direct_request:
+            self.ready_for_recommendations = True  # Set this flag when direct request is detected
             return True
 
         if "genre" in user_input_lower and self.question_count < self.MIN_QUESTIONS:
