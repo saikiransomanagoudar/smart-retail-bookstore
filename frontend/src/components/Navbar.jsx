@@ -168,20 +168,13 @@ const Navbar = () => {
 
             {/* Auth Section */}
             {!isSignedIn ? (
-              <div className='flex items-center space-x-4'>
-                <Link
-                  to='/login'
-                  className='text-gray-300 hover:text-white transition-colors duration-200'
-                  onClick={resetSearch} // Clear search when navigating to login
-                >
-                  Sign in
-                </Link>
+              <div className='flex items-center'>
                 <Link
                   to='/signup'
                   className='bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200'
-                  onClick={resetSearch} // Clear search when navigating to signup
+                  onClick={resetSearch}
                 >
-                  Sign up
+                  Join Now
                 </Link>
               </div>
             ) : (
@@ -212,26 +205,6 @@ const Navbar = () => {
                         {user?.primaryEmailAddress?.emailAddress}
                       </p>
                     </div>
-                    <Link
-                      to='/profile'
-                      className='block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'
-                      onClick={() => {
-                        setShowDropdown(false);
-                        resetSearch();
-                      }}
-                    >
-                      Profile Settings
-                    </Link>
-                    <Link
-                      to='/orders'
-                      className='block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'
-                      onClick={() => {
-                        setShowDropdown(false);
-                        resetSearch();
-                      }}
-                    >
-                      My Orders
-                    </Link>
                     <SignOutButton>
                       <button
                         onClick={resetSearch}
@@ -292,17 +265,7 @@ const Navbar = () => {
 
             {/* Mobile Auth Section */}
             {!isSignedIn ? (
-              <div className='space-y-2 pt-2 border-t border-gray-700'>
-                <Link
-                  to='/login'
-                  className='block px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-md transition-colors duration-200'
-                  onClick={() => {
-                    setIsNavOpen(false);
-                    resetSearch();
-                  }}
-                >
-                  Sign in
-                </Link>
+              <div className='pt-2 border-t border-gray-700'>
                 <Link
                   to='/signup'
                   className='block px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 text-center'
@@ -311,7 +274,7 @@ const Navbar = () => {
                     resetSearch();
                   }}
                 >
-                  Sign up
+                  Join Now
                 </Link>
               </div>
             ) : (
@@ -332,26 +295,6 @@ const Navbar = () => {
                     </p>
                   </div>
                 </div>
-                <Link
-                  to='/profile'
-                  className='block px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-md transition-colors duration-200'
-                  onClick={() => {
-                    setIsNavOpen(false);
-                    resetSearch();
-                  }}
-                >
-                  Profile Settings
-                </Link>
-                <Link
-                  to='/orders'
-                  className='block px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-md transition-colors duration-200'
-                  onClick={() => {
-                    setIsNavOpen(false);
-                    resetSearch();
-                  }}
-                >
-                  My Orders
-                </Link>
                 <SignOutButton>
                   <button
                     onClick={() => {
